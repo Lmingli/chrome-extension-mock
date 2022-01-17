@@ -27,7 +27,7 @@
               <template #before>
                 <el-table-column align="center" width="100px">
                   <template #default="{ row: expandRow }">
-                    <el-button v-if="expandRow.active" type="success">当前</el-button>
+                    <el-button v-if="expandRow.active" type="success" @click="handleCancelActive(row)">当前</el-button>
                     <el-button v-else @click="handleChooseActive(row, expandRow)">选择</el-button>
                   </template>
                 </el-table-column>
@@ -105,7 +105,7 @@ const expandColumn = [
   { label: 'method', prop: 'method' },
   { label: 'requestParams', prop: 'requestParams' },
   { label: 'requestBody', prop: 'requestBody' },
-  { label: 'response', prop: 'response', minWidth: '300%' },
+  { label: 'response', prop: 'response', 'show-overflow-tooltip': true },
 ];
 
 
@@ -149,6 +149,16 @@ const handleRowClick = ({ key, value }, column) => {
 
 
 
+const handleCancelActive = async(row) => {
+  let newVal = row.value;
+  for (let n of newVal) {
+    n.active = false;
+  }
+  await storage.set({
+    [row.key]: toRaw(newVal),
+  });
+  ElMessage.success('设置成功');
+}
 const handleChooseActive = async(row, expandRow) => {
   let newVal = row.value;
   for (let n of newVal) {
