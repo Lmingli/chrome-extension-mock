@@ -7,7 +7,7 @@ chrome.storage.local.get((res) => {
       setting: {
         openSave: false,
         openMock: false,
-        filter: '127.0.0.1:3000',
+        filter: '127.0.0.1:8888',
         limit: null,
         checkParams: true,
         checkBody: true,
