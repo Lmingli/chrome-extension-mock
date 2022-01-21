@@ -79,6 +79,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     }
 
     const { request, response } = msg.network;
+
+    if (/hot-update\.json/.test(request.url)) {
+      console.log('hot-update')
+      return;
+    }
+
     if (!new RegExp(storage.setting.filter).test(request.url)) {
       return;
     }

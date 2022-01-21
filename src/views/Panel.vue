@@ -1,5 +1,6 @@
 <template>
-  <setting style="padding-top: 10px;"></setting>
+  <setting></setting>
+
   <div style="margin-top: 30px;">
     <el-button type="primary" @click="setData">刷新</el-button>
     <el-button type="danger" @click="handleClear">全部清空</el-button>

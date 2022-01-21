@@ -1,6 +1,6 @@
 <template>
   <div style="width: 900px;padding: 0 20px 40px;">
-    <setting style="padding-top: 10px;"></setting>
+    <setting></setting>
 
     <div style="padding-top: 20px;">仅可选择已设置名称的数据</div>
     <customize-table
