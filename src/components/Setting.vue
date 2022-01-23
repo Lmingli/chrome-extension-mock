@@ -1,14 +1,17 @@
 <template>
   <div style="padding-top: 14px;">
     <customize-form
-      :model="setting"
+      :form="setting"
       v-model:loading="loading.setting"
       @submit="handleSubmit"
       :setting="settingConf"
       inline
       :showResetButton="false"
-      fullWidth
-    ></customize-form>
+    >
+      <template #button>
+        <el-button type="success" @click="drawer = true;">更多设置</el-button>
+      </template>
+    </customize-form>
   </div>
   
   <!-- <el-row :gutter="20">
@@ -27,14 +30,12 @@
   </el-row> -->
   
 
-  <!-- <el-drawer
+  <el-drawer
     v-model="drawer"
-    title="I am the title"
-    :direction="direction"
     :before-close="handleClose"
   >
     <span>Hi, there!</span>
-  </el-drawer> -->
+  </el-drawer>
 </template>
 
 <script setup>
@@ -59,11 +60,11 @@ onMounted(async () => {
   }
 });
 
-const handleSubmit = async() => {
-  console.log('change', setting)
+const handleSubmit = async(value) => {
+  console.log('change', value)
   try {
     await storage.set({
-      setting: toRaw(setting),
+      setting: value,
     });
     ElMessage.success('设置成功');
   } catch (error) {
@@ -82,6 +83,12 @@ const settingConf = [
 const loading = reactive({
   setting: false,
 });
+
+
+const drawer = ref(false);
+const handleClose = () => {
+
+}
 </script>
 
 <style lang='scss' scoped>
