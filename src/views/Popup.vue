@@ -2,7 +2,11 @@
   <div style="width: 900px;padding: 0 20px 40px;">
     <setting></setting>
 
-    <div style="padding-top: 20px;">仅可选择已设置名称的数据</div>
+    <div style="margin-bottom: 10px;">
+      <router-link :to="{ path: '/options' }" target="_blank">跳转至选项页</router-link>
+    </div>
+
+    <div>仅可选择已设置名称的数据</div>
     <customize-table
       :data="tableData"
       :column="tableColumn"
@@ -24,9 +28,6 @@
       </template>
     </customize-table>
 
-    <div style="margin-top: 20px;">
-      <router-link :to="{ path: '/options' }" target="_blank">跳转至选项页</router-link>
-    </div>
   </div>
 </template>
 

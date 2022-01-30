@@ -1,5 +1,13 @@
 const { MODE } = import.meta.env;
 if (MODE === 'development') {
+  window.asd = (data) => {
+    if (typeof data === 'string') {
+      data = JSON.parse(data);
+    }
+    for (let n in data) {
+      window.sessionStorage.setItem(n, typeof data[n] === 'object' ? JSON.stringify(data[n]) : data[n]);
+    }
+  }
   class Emitter {
     constructor() {
       this.timer = null;

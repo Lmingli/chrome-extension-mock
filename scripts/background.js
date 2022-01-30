@@ -7,11 +7,14 @@ chrome.storage.local.get((res) => {
       setting: {
         openSave: false,
         openMock: false,
-        filter: '127.0.0.1:8888',
+        openUrl: '127.0.0.1:8888',
         limit: null,
         checkParams: true,
         checkBody: true,
-        removeParams: ['t'],
+        removeRequestUrlParams: [],
+        removeRequestBodyParams: ['t'],
+        listUrlRemoveStr: '',
+        filterUrl: [],
       }
     })
   }
@@ -21,6 +24,52 @@ chrome.storage.local.onChanged.addListener(() => {
     storage = res;
   })
 })
+
+
+const utils = (() => {
+  const Qs = {
+    parse: (str) => {
+      if (!str) {
+        return {};
+      }
+      try {
+        return JSON.parse(str);
+      } catch (error) {
+        
+      }
+      return str.split('&').reduce((prev, cur) => {
+        let tmp = cur.split('=');
+        prev[tmp[0]] = tmp[1];
+        return prev;
+      }, {})
+    },
+    stringify: (obj) => {
+      let res = [];
+      for (let n in obj) {
+        res.push(`${n}=${obj[n]}`);
+      }
+      res.join('&');
+      return res;
+    },
+  };
+
+  const getRequestUrlPrams = (url) => {
+    if (url.indexOf('?') > -1) {
+      let params = Qs.parse(url.substring(url.indexOf('?') + 1));
+      for (let n of storage.setting.removeRequestUrlParams) {
+        delete params[n];
+      }
+      return JSON.stringify(params);
+    } else {
+      return '{}';
+    }
+  }
+
+  return {
+    getRequestUrlPrams,
+    Qs,
+  }
+})();
 
 
 
@@ -33,11 +82,18 @@ chrome.webRequest.onBeforeRequest.addListener(details => {
   console.log('details', details);
 
   const url = details.url;
-  if (!new RegExp(storage.setting.filter).test(url)) {
+  if (!new RegExp(storage.setting.openUrl).test(url)) {
     return;
   }
 
-  let requestBody = '';
+  for (let n of storage.setting.filterUrl) {
+    if (new RegExp(n).test(url)) {
+      console.log('命中filterUrl');
+      return;
+    }
+  }
+
+  let requestBody = '{}';
   if (!!details.requestBody?.formData) {
     requestBody = Object.entries(details.requestBody.formData ?? {}).reduce((prev, cur) => prev + `${cur[0]}=${cur[1]}&`, '');
     if (requestBody.substring(requestBody.length - 1) === '&') {
@@ -48,7 +104,7 @@ chrome.webRequest.onBeforeRequest.addListener(details => {
     try {
       let body = String.fromCharCode.apply(null, new Uint8Array(details.requestBody.raw[0].bytes));
       let parseBody = JSON.parse(body);
-      for (let n of storage.setting.removeParams) {
+      for (let n of storage.setting.removeRequestBodyParams) {
         delete parseBody[n];
       }
       requestBody = JSON.stringify(parseBody);
@@ -60,7 +116,7 @@ chrome.webRequest.onBeforeRequest.addListener(details => {
 
   const storageKey = url.split('?')[0];
 
-  const val = (storage[storageKey] || []).filter(n => (storage.setting.checkParams ? n.requestParams === (url.indexOf('?') > -1 ? url.substring(url.indexOf('?') + 1) : '') : true) && (storage.setting.checkBody ? n.requestBody === requestBody : true));
+  const val = (storage[storageKey] || []).filter(n => (storage.setting.checkParams ? n.requestParams === utils.getRequestUrlPrams(url) : true) && (storage.setting.checkBody ? n.requestBody === requestBody : true));
   
   let res = val.find(n => n.active)?.response;
 
@@ -85,17 +141,26 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       return;
     }
 
-    if (!new RegExp(storage.setting.filter).test(request.url)) {
+    if (!new RegExp(storage.setting.openUrl).test(request.url)) {
       return;
     }
+
+    for (let n of storage.setting.filterUrl) {
+      if (url.includes(n)) {
+        console.log('命中filterUrl');
+        return;
+      }
+    }
+    
     console.log(request, response)
 
     if (response === null) {
       return;
     }
 
-    const requestParams = request.url.indexOf('?') > -1 ? request.url.substring(request.url.indexOf('?') + 1) : '';
-    let requestBody = '';
+    const requestParams = utils.getRequestUrlPrams(request.url);
+    console.log(requestParams)
+    let requestBody = '{}';
     if (/x-www-form-urlencoded/.test(request?.postData?.mimeType)) {
       requestBody = decodeURIComponent((request.postData.params ?? []).map(n => `${n.name}=${n.value}`).join('&'));
     }
@@ -103,7 +168,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       requestBody = request.postData.text;
       try {
         let parseBody = JSON.parse(requestBody);
-        for (let n of storage.setting.removeParams) {
+        for (let n of storage.setting.removeRequestBodyParams) {
           delete parseBody[n];
         }
         requestBody = JSON.stringify(parseBody);

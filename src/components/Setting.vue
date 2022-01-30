@@ -14,27 +14,30 @@
     </customize-form>
   </div>
   
-  <!-- <el-row :gutter="20">
-    <el-col :span="6">
-      <span>MOCK：</span>
-      <el-switch v-model="setting.openMock" :disabled="setting.openSave && !setting.openMock" active-text="开启" @change="handleChange" />
-    </el-col>
-    <el-col :span="6">
-      <span>保存请求：</span>
-      <el-switch v-model="setting.openSave" :disabled="setting.openMock && !setting.openSave" active-text="开启" @change="handleChange" />
-    </el-col>
-    <el-col :span="12">
-      <span>生效域名：</span>
-      <el-input v-model="setting.filter" @change="handleChange"></el-input>
-    </el-col>
-  </el-row> -->
-  
-
   <el-drawer
     v-model="drawer"
     :before-close="handleClose"
+    custom-class="drawer-setting-more"
   >
-    <span>Hi, there!</span>
+    <customize-form
+      :form="setting"
+      v-model:loading="loading.settingMore"
+      @submit="handleSubmitMore"
+      :setting="settingMoreConf"
+      :showResetButton="false"
+      label-width="200px"
+    >
+      <template #removeRequestUrlParams="{ form }">
+        <editable-list v-model="form.removeRequestUrlParams"></editable-list>
+      </template>
+      <template #removeRequestBodyParams="{ form }">
+        <editable-list v-model="form.removeRequestBodyParams"></editable-list>
+      </template>
+      <template #filterUrl="{ form }">
+        <editable-list v-model="form.filterUrl"></editable-list>
+      </template>
+    </customize-form>
+    <div>{{ setting }}</div>
   </el-drawer>
 </template>
 
@@ -44,12 +47,20 @@ import { storage } from '@/utils/Chrome';
 import { ElMessage } from 'element-plus';
 
 const setting = reactive({
-  openMock: false,
   openSave: false,
-  filter: '',
+  openMock: false,
+  openUrl: '',
+  limit: null,
+  checkParams: true,
+  checkBody: true,
+  removeRequestUrlParams: [],
+  removeRequestBodyParams: [],
+  listUrlRemoveStr: '',
+  filterUrl: [],
 });
 
-onMounted(async () => {
+
+const getSettingData = async() => {
   try {
     const res = await storage.get();
     for (let n in res.setting) {
@@ -58,13 +69,17 @@ onMounted(async () => {
   } catch (error) {
     console.log(error)
   }
+}
+onMounted(() => {
+  getSettingData();
+  storage.onchange(getSettingData);
 });
 
 const handleSubmit = async(value) => {
   console.log('change', value)
   try {
     await storage.set({
-      setting: value,
+      setting: value,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
     });
     ElMessage.success('设置成功');
   } catch (error) {
@@ -76,9 +91,9 @@ const handleSubmit = async(value) => {
 
 
 const settingConf = [
-  { type: 'switch', prop: 'openMock', label: 'MOCK', values: [true, false], text: ['开启', ''] },
-  { type: 'switch', prop: 'openSave', label: '保存请求', values: [true, false], text: ['开启', ''] },
-  { type: 'input', prop: 'filter', label: '生效域名' },
+  { type: 'switch', prop: 'openMock', label: 'MOCK', values: [true, false] },
+  { type: 'switch', prop: 'openSave', label: '保存请求', values: [true, false] },
+  { type: 'input', prop: 'openUrl', label: '生效域名', width: '140px' },
 ];
 const loading = reactive({
   setting: false,
@@ -86,20 +101,49 @@ const loading = reactive({
 
 
 const drawer = ref(false);
-const handleClose = () => {
+const handleClose = (done) => {
+  done();
+}
 
+const settingMoreConf = [
+  ...settingConf,
+  { type: 'input', prop: 'limit', label: '相同域名条数上限' },
+  { type: 'switch', prop: 'checkParams', label: '检查请求链接参数', values: [true, false], text: ['开启', ''] },
+  { type: 'switch', prop: 'checkBody', label: '检查请求体', values: [true, false], text: ['开启', ''] },
+  // { type: 'select', prop: 'removeRequestUrlParams', label: '忽略请求链接参数', multiple: true, filterable: true, 'allow-create': true, enum: setting.removeRequestUrlParams, hideOptionAll: true },
+  // { type: 'select', prop: 'removeRequestBodyParams', label: '忽略请求体参数', multiple: true, filterable: true, 'allow-create': true, enum: setting.removeRequestBodyParams, hideOptionAll: true },
+  { type: 'slotIn', slot: 'removeRequestUrlParams', label: '忽略请求链接参数' },
+  { type: 'slotIn', slot: 'removeRequestBodyParams', label: '忽略请求体参数' },
+  { type: 'input', prop: 'listUrlRemoveStr', label: '列表中隐藏url中的字符' },
+  { type: 'slotIn', slot: 'filterUrl', label: '过滤url中包含的请求' },
+];
+
+const handleSubmitMore = async (value) => {
+  console.log('handleSettingMoreSubmit', value);
+  const filterProps = ['filterUrl', 'removeRequestUrlParams', 'removeRequestBodyParams'];
+  for (let n of filterProps) {
+    value[n] = value[n].filter(x => !!x);
+  }
+
+  try {
+    await storage.set({
+      setting: value,
+    });
+    ElMessage.success('设置成功');
+  } catch (error) {
+    console.log(error)
+  } finally {
+    loading.settingMore = false;
+  }
 }
 </script>
 
-<style lang='scss' scoped>
-.el-col {
-  display: flex;
-  span {
-    flex: none;
-    line-height: 32px;
-  }
+<style lang="scss">
+.drawer-setting-more {
+  width: 80% !important;
+  max-width: 500px;
   .el-input {
-    flex: 1;
+    width: 100% !important;
   }
 }
 </style>
