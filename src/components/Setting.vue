@@ -108,7 +108,7 @@ const handleSubmit = async(value) => {
 const settingConf = [
   { type: 'switch', prop: 'openMock', label: 'MOCK', values: [true, false] },
   { type: 'switch', prop: 'openSave', label: '保存请求', values: [true, false] },
-  { type: 'input', prop: 'openUrl', label: '生效域名', width: '140px' },
+  { type: 'input', prop: 'openUrl', label: '生效的请求域名', width: '140px' },
 ];
 const loading = reactive({
   setting: false,

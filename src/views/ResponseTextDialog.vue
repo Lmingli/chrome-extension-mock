@@ -53,8 +53,20 @@ onMounted(async() => {
   }, text);
 });
 const handleSave = () => {
-  emits("change", JSON.stringify(editor.value.get()));
-  visible.value = false;
+  try {
+    emits("change", JSON.stringify(editor.value.get()));
+    visible.value = false;
+  } catch (error) {
+    try {
+      const text = editor.value.getText();
+      const obj = eval(`(${text})`);
+      editor.value.set(obj);
+      ElMessage.success('整理格式成功');
+    } catch (error) {
+      console.log('123',error)
+      ElMessage.error('JSON格式错误');
+    }
+  }
 }
 const handleCancel = () => {
   visible.value = false;

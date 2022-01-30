@@ -75,16 +75,16 @@ const utils = (() => {
 
 // 拦截请求
 chrome.webRequest.onBeforeRequest.addListener(details => {
-  
+
   if (!storage.setting?.openMock) {
     return;
   }
-  console.log('details', details);
-
+  
   const url = details.url;
   if (!new RegExp(storage.setting.openUrl).test(url)) {
     return;
   }
+  console.log('details', details);
 
   for (let n of storage.setting.filterUrl) {
     if (new RegExp(n).test(url)) {
@@ -123,7 +123,7 @@ chrome.webRequest.onBeforeRequest.addListener(details => {
   return {
     redirectUrl: !res ? null : (`data:application/json;charset=UTF-8,${(res)}`)
   }
-}, {urls: ["<all_urls>"], types: ["xmlhttprequest"]}, ["blocking", "requestBody"]);
+}, {urls: [storage.setting?.openUrl ?? "<all_urls>"], types: ["xmlhttprequest"]}, ["blocking", "requestBody"]);
 
 
 
@@ -146,7 +146,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     }
 
     for (let n of storage.setting.filterUrl) {
-      if (url.includes(n)) {
+      if (request.url.includes(n)) {
         console.log('命中filterUrl');
         return;
       }

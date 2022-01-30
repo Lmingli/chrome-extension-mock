@@ -33,8 +33,9 @@
 		"webRequest", // web请求
 		"webRequestBlocking",
 		"storage", // 插件本地存储
-		"http://127.0.0.1/*", // 可以通过executeScript或者insertCSS访问的网站
-		"https://127.0.0.1/*" // 可以通过executeScript或者insertCSS访问的网站
+		// "http://127.0.0.1/*", // 可以通过executeScript或者insertCSS访问的网站
+		// "https://127.0.0.1/*" // 可以通过executeScript或者insertCSS访问的网站
+		"<all_urls>"
 	],
 	// 普通页面能够直接访问的插件资源列表，如果不设置是无法直接访问的
 	"web_accessible_resources": ["scripts/inject.js"],
