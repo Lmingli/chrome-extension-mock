@@ -96,5 +96,22 @@ export const storage = {
     chrome.storage.local.onChanged.addListener(() => {
       cb();
     })
-  }
+  },
+
+  upload: () => new Promise((resolve) => {
+    chrome.storage.local.get((res) => {
+      chrome.storage.sync.set(res, () => {
+        resolve();
+      })
+    })
+  }),
+  download: () => new Promise((resolve) => {
+    chrome.storage.local.get((localData) => {
+      chrome.storage.sync.get((syncData) => {
+        chrome.storage.local.set({ ...localData, ...syncData }, () => {
+          resolve();
+        })
+      })
+    })
+  }),
 }
