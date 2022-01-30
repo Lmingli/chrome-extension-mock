@@ -185,7 +185,6 @@ const handleRowClick = ({ key, value }, column) => {
   }
 }
 const rowStyle = ({ row, rowIndex }) => {
-  console.log(rowIndex)
   return {
     'background-color': rowIndex % 2 === 0 ? 'rgb(236, 245, 255)' : 'rgb(245, 254, 240)',
   }

@@ -4,7 +4,7 @@ import Router from '@/router';
 const { VITE_BASE_URL, MODE } = import.meta.env;
 
 export default {
-  baseURL: VITE_BASE_URL,
+  baseURL: 'https://api.luanmingli.com',
 
   defaultErrorMessage: '网络错误，请稍后重试',
   errorMessageFn: ElMessage.error,

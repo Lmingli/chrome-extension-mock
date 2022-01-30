@@ -98,20 +98,20 @@ export const storage = {
     })
   },
 
-  upload: () => new Promise((resolve) => {
-    chrome.storage.local.get((res) => {
-      chrome.storage.sync.set(res, () => {
-        resolve();
-      })
-    })
-  }),
-  download: () => new Promise((resolve) => {
-    chrome.storage.local.get((localData) => {
-      chrome.storage.sync.get((syncData) => {
-        chrome.storage.local.set({ ...localData, ...syncData }, () => {
-          resolve();
-        })
-      })
-    })
-  }),
+  // upload: () => new Promise(async(resolve) => {
+  //   chrome.storage.local.get((res) => {
+  //     chrome.storage.sync.set(res, () => {
+  //       resolve();
+  //     })
+  //   })
+  // }),
+  // download: () => new Promise((resolve) => {
+  //   chrome.storage.local.get((localData) => {
+  //     chrome.storage.sync.get((syncData) => {
+  //       chrome.storage.local.set({ ...localData, ...syncData }, () => {
+  //         resolve();
+  //       })
+  //     })
+  //   })
+  // }),
 }

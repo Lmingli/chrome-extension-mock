@@ -19,7 +19,7 @@
     :before-close="handleClose"
     custom-class="drawer-setting-more"
   >
-    <div style="margin-bottom: 20px;">
+    <!-- <div style="margin-bottom: 20px;">
       <el-popconfirm title="确定进行此项操作？" @confirm="handleUpload">
         <template #reference>
           <el-button type="primary">同步至google账户</el-button>
@@ -30,7 +30,7 @@
           <el-button type="primary">从google账户合并</el-button>
         </template>
       </el-popconfirm>
-    </div>
+    </div> -->
     <customize-form
       :form="setting"
       v-model:loading="loading.settingMore"
@@ -155,14 +155,14 @@ const handleSubmitMore = async (value) => {
 
 
 
-const handleUpload = async() => {
-  await storage.upload();
-  ElMessage.success('上传成功');
-}
-const handleDownload = async() => {
-  await storage.download();
-  ElMessage.success('下载成功');
-}
+// const handleUpload = async() => {
+//   await storage.upload();
+//   ElMessage.success('上传成功');
+// }
+// const handleDownload = async() => {
+//   await storage.download();
+//   ElMessage.success('下载成功');
+// }
 </script>
 
 <style lang="scss">
