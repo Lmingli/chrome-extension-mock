@@ -88,7 +88,13 @@ const settingData = ref({});
 const tableData = shallowRef([]);
 const tableColumn = [
   { slot: 'expand' },
-  { label: 'url', prop: 'key', formatter: (row, column, cellValue, index) => cellValue.replace(settingData.value.listUrlRemoveStr, ''), minWidth: '200px' },
+  { label: 'url', prop: 'key', formatter: (row, column, cellValue, index) => {
+    let value = cellValue;
+    for (let n of settingData.value.listUrlRemoveStr) {
+      value = value.replace(n, '');
+    }
+    return value;
+  }, minWidth: '200px' },
   { label: 'count', prop: 'count' },
   { label: 'size', prop: 'size' },
 ];

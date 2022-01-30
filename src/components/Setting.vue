@@ -33,6 +33,9 @@
       <template #removeRequestBodyParams="{ form }">
         <editable-list v-model="form.removeRequestBodyParams"></editable-list>
       </template>
+      <template #listUrlRemoveStr="{ form }">
+        <editable-list v-model="form.listUrlRemoveStr"></editable-list>
+      </template>
       <template #filterUrl="{ form }">
         <editable-list v-model="form.filterUrl"></editable-list>
       </template>
@@ -55,7 +58,7 @@ const setting = reactive({
   checkBody: true,
   removeRequestUrlParams: [],
   removeRequestBodyParams: [],
-  listUrlRemoveStr: '',
+  listUrlRemoveStr: [],
   filterUrl: [],
 });
 
@@ -112,15 +115,16 @@ const settingMoreConf = [
   { type: 'switch', prop: 'checkBody', label: '检查请求体', values: [true, false], text: ['开启', ''] },
   // { type: 'select', prop: 'removeRequestUrlParams', label: '忽略请求链接参数', multiple: true, filterable: true, 'allow-create': true, enum: setting.removeRequestUrlParams, hideOptionAll: true },
   // { type: 'select', prop: 'removeRequestBodyParams', label: '忽略请求体参数', multiple: true, filterable: true, 'allow-create': true, enum: setting.removeRequestBodyParams, hideOptionAll: true },
+  // { type: 'input', prop: 'listUrlRemoveStr', label: '列表中隐藏url中的字符' },
   { type: 'slotIn', slot: 'removeRequestUrlParams', label: '忽略请求链接参数' },
   { type: 'slotIn', slot: 'removeRequestBodyParams', label: '忽略请求体参数' },
-  { type: 'input', prop: 'listUrlRemoveStr', label: '列表中隐藏url中的字符' },
+  { type: 'slotIn', slot: 'listUrlRemoveStr', label: '列表中隐藏url中的字符' },
   { type: 'slotIn', slot: 'filterUrl', label: '过滤url中包含的请求' },
 ];
 
 const handleSubmitMore = async (value) => {
   console.log('handleSettingMoreSubmit', value);
-  const filterProps = ['filterUrl', 'removeRequestUrlParams', 'removeRequestBodyParams'];
+  const filterProps = ['filterUrl', 'removeRequestUrlParams', 'listUrlRemoveStr', 'removeRequestBodyParams'];
   for (let n of filterProps) {
     value[n] = value[n].filter(x => !!x);
   }
