@@ -21,6 +21,7 @@
 import { nextTick, onMounted, ref, watch, watchEffect } from 'vue';
 import JSONEditor from 'jsoneditor';
 import 'jsoneditor/dist/jsoneditor.min.css';
+import { ElMessage } from 'element-plus';
 
 const props = defineProps(["modelValue", "data"]);
 const emits = defineEmits(["update:modelValue", "change"]);
@@ -32,9 +33,20 @@ watchEffect(() => {
 
 const editorRef = ref(null);
 const editor = ref();
-let text = JSON.parse(props.data);
+
 onMounted(async() => {
+  let text = '';
+  try {
+    text = JSON.parse(props.data)
+  } catch (error) {
+    console.log(error);
+    ElMessage.error('解析JSON失败');
+    visible.value = false;
+    return;
+  }
+
   await nextTick();
+
   editor.value = new JSONEditor(editorRef.value, {
     mode: 'code',
     modes: ['code', 'tree'],
