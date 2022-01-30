@@ -58,10 +58,20 @@
           </el-table-column>
         </template>
 
+        <template #url>
+          <el-table-column label="url" prop="key" min-width="200px">
+            <template #default="{ row }">
+              <el-tooltip effect="dark" :content="row.key" placement="top">{{ tableUrlFormatter(row.key) }}</el-tooltip>
+            
+            </template>
+          </el-table-column>
+        </template>
+
         <template #after>
-          <el-table-column label="操作" align="center" prop="operate" width="300px">
+          <el-table-column label="操作" align="center" prop="operate" width="340px">
             <template #default="{ row }">
               <el-button v-if="showUncheck(row)" type="warning" @click="handleUnchek(row)">取消已选择</el-button>
+              <el-button type="primary" @click="handleAdd(row)">新增</el-button>
               <el-popconfirm title="是否确定删除？" @confirm="handleDelete(row)">
                 <template #reference>
                   <el-button type="danger">删除</el-button>
@@ -88,16 +98,18 @@ const settingData = ref({});
 const tableData = shallowRef([]);
 const tableColumn = [
   { slot: 'expand' },
-  { label: 'url', prop: 'key', formatter: (row, column, cellValue, index) => {
-    let value = cellValue;
-    for (let n of settingData.value.listUrlRemoveStr) {
-      value = value.replace(n, '');
-    }
-    return value;
-  }, minWidth: '200px' },
+  { slot: 'url' },
   { label: 'count', prop: 'count' },
   { label: 'size', prop: 'size' },
 ];
+const tableUrlFormatter = (cellValue) => {
+  let value = cellValue;
+  for (let n of settingData.value.listUrlRemoveStr) {
+    value = value.replace(n, '');
+  }
+  return value;
+}
+
 const setData = async() => {
   try {
     const data = await storage.get();
@@ -152,6 +164,25 @@ const handleUnchek = async({ key, value }) => {
     [key]: toRaw(value),
   });
 }
+
+const handleAdd = ({ key }) => {
+  const data = tableData.value.find(n => n.key === key)
+  const last = data.value[data.value.length - 1];
+  data.value.push({
+    active: false,
+    method: last.method,
+    name: "",
+    requestBody: "{}",
+    requestParams: "{}",
+    response: "{}",
+    timestamp: Date.now(),
+  })
+  if (expandRowKeys.value.includes(key)) {
+    expandRowKeys.value.splice(expandRowKeys.value.indexOf(key), 1);
+  }
+  expandRowKeys.value.push(key);
+}
+
 
 const handleClear = async() => {
   try {
