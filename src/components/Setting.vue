@@ -52,12 +52,14 @@
         <editable-list v-model="form.filterUrl"></editable-list>
       </template>
     </customize-form>
-    <div>{{ setting }}</div>
+    <div @click="dialogVisible = true;">{{ setting }}</div>
   </el-drawer>
+
+  <response-text-dialog v-if="dialogVisible" v-model="dialogVisible" :data="JSON.stringify(setting)" @change="handleTextDialogChange"></response-text-dialog>
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, toRaw } from 'vue';
+import { onMounted, reactive, ref, defineAsyncComponent } from 'vue';
 import { storage } from '@/utils/Chrome';
 import { ElMessage } from 'element-plus';
 
@@ -153,6 +155,21 @@ const handleSubmitMore = async (value) => {
   }
 }
 
+
+
+const ResponseTextDialog = defineAsyncComponent(() => import('@/views/ResponseTextDialog.vue'));
+const dialogVisible = ref(false);
+const handleTextDialogChange = async(text) => {
+  console.log(text)
+  try {
+    await storage.set({
+      setting: JSON.parse(text),
+    });
+    ElMessage.success('保存成功');
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 
 // const handleUpload = async() => {
