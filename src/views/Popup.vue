@@ -15,9 +15,9 @@
       <template #select>
         <el-table-column>
           <template #default="{ row }">
-            <el-select :model-value="active[row.key]" filterable placeholder="Select" @change="handleSelectChange($event, row)">
+            <el-select :model-value="active[row.key]" filterable clearable placeholder="Select" @change="handleSelectChange($event, row)">
               <el-option
-                v-for="item in row.value"
+                v-for="item in row.value.filter(n => !!n.name)"
                 :key="item.timestamp"
                 :label="item.name"
                 :value="item.timestamp"
@@ -36,27 +36,42 @@ import { reactive, ref, toRaw, onMounted } from 'vue';
 import { storage } from '@/utils/Chrome';
 import { ElMessage } from 'element-plus';
 
+const settingData = ref({});
+
 const tableData = ref([]);
 const tableColumn = [
-  { label: "url", prop: 'key' },
+  { label: "url", prop: 'key', formatter: (row, column, cellValue, index) => {
+    let value = cellValue;
+    for (let n of settingData.value.listUrlRemoveStr) {
+      value = value.replace(n, '');
+    }
+    return value;
+  } },
   { slot: 'select' },
 ];
 const active = reactive({});
 const setData = async() => {
   try {
     const data = await storage.get();
-    tableData.value = Object.entries(data).filter(n => n[1] instanceof Array).map(n => ({
-      key: n[0],
-      value: n[1].filter(n => !!n.name),
-    }))
-    
-    console.log(tableData.value);
-    for (let n of tableData.value) {
-      const asd = n.value?.find(n => n.active)?.timestamp ?? ''
-      console.log(asd)
-      active[n.key] = asd;
-      console.log(active)
+    let tmp = [];
+    for (let n in data) {
+      if (n === 'setting') {
+        settingData.value = data[n];
+        continue;
+      };
+      if (n === 'tmp') {
+        continue;
+      }
+      if (data[n].find(n => !!n.name)) {
+        tmp.push({
+          key: n,
+          value: data[n],
+        });
+        active[n] = data[n].find(n => n.active)?.timestamp ?? '';
+      }
     }
+    tableData.value = tmp;
+    console.log(tableData.value);
   } catch (error) {
     console.log(error)
   }
@@ -72,11 +87,14 @@ onMounted(() => {
 
 
 const handleSelectChange = async(val, row) => {
+  console.log(val,row)
   let newVal = row.value;
   for (let n of newVal) {
     n.active = false;
   }
-  newVal.find(n => n.timestamp === val).active = true;
+  if (!!val) {
+    newVal.find(n => n.timestamp === val).active = true;
+  }
   await storage.set({
     [row.key]: toRaw(newVal),
   });
