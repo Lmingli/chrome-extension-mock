@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router';
 
 const routes = [
   {
@@ -21,7 +21,7 @@ const routes = [
     name: 'panel',
     component: () => import('@/views/Panel.vue'),
   },
-  
+
   {
     path: '/:pathMatch(.*)*',
     component: () => import('@/components/404.vue'),
@@ -31,6 +31,6 @@ const routes = [
 const router = createRouter({
   history: createWebHashHistory(),
   routes,
-})
+});
 
 export default router;
