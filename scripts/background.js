@@ -73,9 +73,10 @@ const utils = (() => {
 
 
 
-// 拦截请求
+/* 
+  MOCK：拦截请求并返回修改后的dataURL数据
+*/
 chrome.webRequest.onBeforeRequest.addListener(details => {
-
   if (!storage.setting?.openMock) {
     return;
   }
@@ -128,23 +129,31 @@ chrome.webRequest.onBeforeRequest.addListener(details => {
 
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  // 接收devtool捕获的请求
+  /* 
+    SAVE
+    接收devtool捕获的请求
+    并保存至chrome.storage
+  */
   if (!!msg.network) {
+    // 检查是否开启保存开关
     if (!storage.setting?.openSave) {
       return;
     }
 
     const { request, response } = msg.network;
 
+    // 过滤vue热更新请求
     if (/hot-update\.json/.test(request.url)) {
       console.log('hot-update')
       return;
     }
 
+    // 检查是否匹配配置生效的请求域名
     if (!new RegExp(storage.setting.openUrl).test(request.url)) {
       return;
     }
 
+    // 检查是否匹配配置项filterUrl
     for (let n of storage.setting.filterUrl) {
       if (request.url.includes(n)) {
         console.log('命中filterUrl');
@@ -152,6 +161,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       }
     }
     
+
     console.log(request, response)
 
     if (response === null) {
