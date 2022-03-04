@@ -16,10 +16,11 @@ export default ({ mode }) => defineConfig({
       open: false,
     },
     build: {
+      emptyOutDir: mode !== 'crx',
       rollupOptions: {
         input: [
           ...(mode === 'crx' ? [] : ['index.html']),
-          'crx/background.js',
+          'crx/background.ts',
           'crx/content-script.js',
           'crx/devtools.js',
           'crx/inject.js',
