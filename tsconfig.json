@@ -10,7 +10,8 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "lib": ["esnext", "dom"],
-    // "baseUrl": ".",
+    "allowJs": true,
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },

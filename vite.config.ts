@@ -17,13 +17,15 @@ export default ({ mode }) => defineConfig({
     },
     build: {
       emptyOutDir: mode !== 'crx',
+      sourcemap: mode === 'crx',
+      minify: mode === 'crx' ? false: 'esbuild',
       rollupOptions: {
         input: [
-          ...(mode === 'crx' ? [] : ['index.html']),
-          'crx/background.ts',
-          'crx/content-script.js',
-          'crx/devtools.js',
-          'crx/inject.js',
+          ...(mode === 'crx' ? [] : [resolve(__dirname, 'index.html')]),
+          resolve(__dirname, 'crx/background.ts'),
+          resolve(__dirname, 'crx/content-script.js'),
+          resolve(__dirname, 'crx/devtools.js'),
+          resolve(__dirname, 'crx/inject.js'),
         ],
         output: {
           chunkFileNames: 'assets/[name].[hash].js',

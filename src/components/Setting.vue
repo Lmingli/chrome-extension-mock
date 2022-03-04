@@ -114,6 +114,7 @@ const settingConf = [
 ];
 const loading = reactive({
   setting: false,
+  settingMore: false,
 });
 
 

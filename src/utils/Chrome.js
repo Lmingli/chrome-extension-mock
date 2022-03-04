@@ -88,9 +88,14 @@ export const storage = {
     });
   }),
   clear: () => new Promise((resolve) => {
-    chrome.storage.local.clear(() => {
-      resolve();
-    });
+    chrome.storage.local.get('setting', (res) => {
+      chrome.storage.local.clear(() => {
+        chrome.storage.local.set({ setting: res.setting }, () => {
+          resolve();
+        });
+      });
+    })
+    
   }),
   onchange: (cb) => {
     chrome.storage.local.onChanged.addListener(() => {

@@ -196,8 +196,8 @@
 </template>
 
 <script setup>
-import { reactive, useAttrs, ref, toRaw, watchEffect, toRefs } from 'vue';
-
+import { reactive, useAttrs, ref, toRaw, watchEffect } from 'vue';
+import { isEmpty } from './utils';
 import { form as OPTIONS } from './DEFAULT_OPTIONS';
 
 const props = defineProps({
@@ -454,7 +454,6 @@ const reset = () => {
 defineExpose({ reset });
 
 
-import { isEmpty } from './utils';
 const handleSubmit = async(mode) => {
   // 表单验证
    try {

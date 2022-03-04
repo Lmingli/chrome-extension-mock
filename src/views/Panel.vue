@@ -9,6 +9,10 @@
       <el-button type="danger" @click="handleClear">全部清空</el-button>
       <el-input v-model="searchString" placeholder="url过滤" style="margin-left: 12px;width: 140px;" clearable></el-input>
       <el-button type="warning" style="margin-left: 12px;" @click="handleResetActive">取消全部已选择</el-button>
+      <el-button type="primary" style="margin-left: 12px;" @click="handleDownload">保存配置文件</el-button>
+      <el-upload action="" :show-file-list="false" accept=".json" :before-upload="handleUpload" style="margin-left: 12px;display: inline-block;">
+        <el-button type="primary">上传配置文件</el-button>
+      </el-upload>
       <customize-table
         :data="tableData.filter(n => n.key.includes(searchString))"
         :column="tableColumn"
@@ -313,6 +317,42 @@ const handleTextDialogChange = async(text) => {
   });
   ElMessage.success('保存成功');
 }
+
+
+const handleDownload = async() => {
+  await ElMessageBox.confirm('是否确定下载配置文件至本地', '提示');
+  chrome?.runtime?.sendMessage({
+    download: true,
+  });
+}
+const handleUpload = (file) => {
+  const reader = new FileReader();  
+  reader.onload = async(event) => {  
+    try {
+      const obj = JSON.parse(event.target.result);
+      try {
+        console.log(obj);
+        await ElMessageBox.confirm('是否确定覆盖当前配置文件？', '提示');
+        console.log(storage.set)
+        await storage.set(obj);
+        ElMessage.success('上传成功');
+      } catch (error) {}
+    } catch (error) {
+      ElMessage.error('上传失败');
+    }
+  }  
+  reader.readAsText(file);  
+  return false;
+}
+
+onMounted(() => {
+  chrome?.runtime?.onMessage?.addListener((msg, sender, sendResponse) => {
+    if (msg.downloadSuccess) {
+      ElMessage.success('下载成功');
+    }
+  })
+})
+
 </script>
 
 <style lang='scss' scoped>

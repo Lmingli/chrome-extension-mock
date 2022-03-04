@@ -27,6 +27,7 @@
 
 <script setup>
 import { toRef, onMounted, ref } from 'vue';
+import { isEmpty } from './utils';
 import { switchOpt as OPTIONS } from './DEFAULT_OPTIONS';
 
 const props = defineProps({
@@ -83,7 +84,6 @@ const props = defineProps({
 });
 const emits = defineEmits(['update:value', 'change']);
 
-import { isEmpty } from './utils';
 
 const switchValue = toRef(props, 'value');
 

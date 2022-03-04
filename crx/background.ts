@@ -1,7 +1,6 @@
-import { getRequestUrlPrams } from './utils/utils';
-import { StorageAll, StorageSetting } from './interfaces/common.interface';
+import { getRequestUrlPrams, getSaveRequestBody, filterRequestParams, getMockRequestBody } from './utils/utils';
+import { StorageAll, StorageSetting, StorageItem, StorageItemData } from './interfaces/common.interface';
 import { Request } from './interfaces/network.interface';
-
 
 let storage: StorageAll = {};
 chrome.storage.local.get((res) => {
@@ -19,79 +18,82 @@ chrome.storage.local.get((res) => {
       removeRequestBodyParams: ['t'],
       listUrlRemoveStr: '',
       filterUrl: [],
-    }
+    };
     chrome.storage.local.set({
       setting,
-    })
+    });
   }
-})
+});
 chrome.storage.onChanged.addListener(() => {
   chrome.storage.local.get((res: StorageAll) => {
     storage = res;
-  })
-})
-
-
-
-
-
+    chrome.browserAction.setBadgeText({ text: '' });
+    if (storage.setting?.openSave) {
+      chrome.browserAction.setBadgeText({ text: 'save' });
+      chrome.browserAction.setBadgeBackgroundColor({ color: '#409EFF' });
+    }
+    if (storage.setting?.openMock) {
+      chrome.browserAction.setBadgeText({ text: 'mock' });
+      chrome.browserAction.setBadgeBackgroundColor({ color: '#F56C6C' });
+    }
+  });
+});
 
 /* 
   MOCK：拦截请求并返回修改后的dataURL数据
 */
-chrome.webRequest.onBeforeRequest.addListener(details => {
-  if (!storage.setting?.openMock) {
-    return;
-  }
-  
-  const url = details.url;
-  if (!new RegExp(storage.setting.openUrl).test(url)) {
-    return;
-  }
-  console.log('details', details);
-
-  for (let n of storage.setting.filterUrl) {
-    if (new RegExp(n).test(url)) {
-      console.log('命中filterUrl');
+chrome.webRequest.onBeforeRequest.addListener(
+  (details) => {
+    // 检查是否开启MOCK开关
+    if (!storage.setting?.openMock) {
       return;
     }
-  }
 
-  let requestBody = '{}';
-  if (!!details.requestBody?.formData) {
-    requestBody = Object.entries(details.requestBody.formData ?? {}).reduce((prev, cur) => prev + `${cur[0]}=${cur[1]}&`, '');
-    if (requestBody.substring(requestBody.length - 1) === '&') {
-      requestBody = requestBody.substring(0, requestBody.length - 1);
+    const url = details.url;
+
+    // 检查是否匹配配置生效的请求域名
+    if (!new RegExp(storage.setting.openUrl).test(url)) {
+      return;
     }
-  }
-  if (!!details.requestBody?.raw) {
-    try {
-      let body = String.fromCharCode.apply(null, new Uint8Array(details.requestBody.raw[0].bytes));
-      let parseBody = JSON.parse(body);
-      for (let n of storage.setting.removeRequestBodyParams) {
-        delete parseBody[n];
+
+    console.log('MOCK-----details', details);
+
+    // 检查是否匹配配置项filterUrl
+    for (let n of storage.setting.filterUrl) {
+      if (new RegExp(n).test(url)) {
+        console.log('MOCK-----命中filterUrl');
+        return;
       }
-      requestBody = JSON.stringify(parseBody);
-    } catch (error) {
-      console.log('error---requestBody.raw转string', error);
     }
-  }
 
+    const requestBodyAll = getMockRequestBody(details.requestBody); // 获取请求体所有参数
+    const requestBody = filterRequestParams(storage.setting.removeRequestBodyParams, requestBodyAll); // 过滤后请求体参数
 
-  const storageKey = url.split('?')[0];
+    const storageKey = url.split('?')[0]; // 请求的url地址，storage中的key
 
-  const val = (storage[storageKey] || []).filter(n => (storage.setting.checkParams ? n.requestParams === getRequestUrlPrams(storage.setting, url) : true) && (storage.setting.checkBody ? n.requestBody === requestBody : true));
-  
-  let res = val.find(n => n.active)?.response;
+    const response = (storage[storageKey] ?? [])?.find((n) => {
+      if (storage.setting.checkParams && n.requestParams !== JSON.stringify(getRequestUrlPrams(url))) {
+        return false;
+      }
+      if (storage.setting.checkBody && n.requestBody !== requestBody) {
+        return false;
+      }
+      return n.active;
+    })?.response;
+    console.log(response);
 
-  return {
-    redirectUrl: !res ? null : (`data:application/json;charset=UTF-8,${(res)}`)
-  }
-}, {urls: [storage.setting?.openUrl ?? "<all_urls>"], types: ["xmlhttprequest"]}, ["blocking", "requestBody"]);
+    if (!!response) {
+      console.log('MOCK-----已拦截该请求');
+      return {
+        redirectUrl: `data:application/json;charset=UTF-8,${response}`,
+      };
+    }
+  },
+  { urls: [storage.setting?.openUrl ?? '<all_urls>'], types: ['xmlhttprequest'] },
+  ['blocking', 'requestBody'],
+);
 
-
-
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse): void => {
   /* 
     SAVE
     接收devtool捕获的请求
@@ -104,11 +106,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     }
 
     const request: Request = msg.network.request;
-    const response: string = msg.network.response;  // 服务器真实相应的数据
+    const response: string = msg.network.response; // 服务器真实相应的数据
 
     // 过滤vue热更新请求
     if (/hot-update\.json/.test(request.url)) {
-      console.log('hot-update')
+      console.log('SAVE-----hot-update');
       return;
     }
 
@@ -120,62 +122,91 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     // 检查是否匹配配置项filterUrl
     for (const n of storage.setting.filterUrl) {
       if (request.url.includes(n)) {
-        console.log('命中filterUrl');
+        console.log('SAVE-----命中filterUrl');
         return;
       }
     }
-    
 
-    console.log(request, response)
+    try {
+      console.log('SAVE-----network中', request, JSON.parse(response));
+    } catch (error) {}
 
     if (response === null) {
+      console.log('SAVE-----response为空');
       return;
     }
 
-    const requestParams = getRequestUrlPrams(storage.setting, request.url);
-    console.log(requestParams)
-    let requestBody = '{}';
-    if (/x-www-form-urlencoded/.test(request?.postData?.mimeType)) {
-      requestBody = decodeURIComponent((request.postData.params ?? []).map(n => `${n.name}=${n.value}`).join('&'));
-    }
-    if (/application\/json/.test(request?.postData?.mimeType)) {
-      requestBody = request.postData.text;
-      try {
-        let parseBody = JSON.parse(requestBody);
-        for (let n of storage.setting.removeRequestBodyParams) {
-          delete parseBody[n];
-        }
-        requestBody = JSON.stringify(parseBody);
-      } catch (error) {
-        console.log('error---request.postData.text删除特定参数错误', error);
-      }
-    }
+    const requestParamsAll = getRequestUrlPrams(request.url); // 获取所有url中参数
+    const requestParams = filterRequestParams(storage.setting.removeRequestUrlParams, requestParamsAll); // 过滤后的url参数
 
-    const storageKey = request.url.split('?')[0];
+    const requestBodyAll = getSaveRequestBody(request); // 获取请求体所有参数
+    const requestBody = filterRequestParams(storage.setting.removeRequestBodyParams, requestBodyAll); // 过滤后请求体参数
+
+    console.log('SAVE-----过滤后的参数', requestParams, requestBody);
+
+    const storageKey = request.url.split('?')[0]; // 请求的url地址，storage中的key
 
     // 检查重复
-    if (storage[storageKey]?.find?.(n => n.response === response && n.method === request.method && (storage.setting.checkParams ? n.requestParams === requestParams : true) && (storage.setting.checkBody ? n.requestBody === requestBody : true) )) {
+    const responseRepeat = storage[storageKey]?.find?.((n) => {
+      if (n.method !== request.method) {
+        return false;
+      }
+      if (n.response !== response) {
+        return false;
+      }
+      if (storage.setting.checkParams && n.requestParams !== requestParams) {
+        return false;
+      }
+      if (storage.setting.checkBody && n.requestBody !== requestBody) {
+        return false;
+      }
+      return true;
+    });
+    if (responseRepeat) {
+      console.log('SAVE-----response重复，忽略');
       return;
     }
 
-    let newVal = (storage[storageKey] || []).concat({
-      method: request.method,
-      requestParams,
-      requestBody,
-      response,
-      name: '',
-      timestamp: Date.now(),
-      active: false,
-    });
-    if (storage.setting?.limit) {
-      if (newVal.length > storage.setting?.limit) {
-        newVal.splice(0, 1);
-      }
+    // 保存response至storage
+    let newVal: Array<StorageItemData> = [
+      ...(storage[storageKey] ?? []),
+      {
+        method: request.method,
+        requestParams,
+        requestBody,
+        response,
+        name: '',
+        timestamp: Date.now(),
+        active: false,
+      },
+    ];
+
+    if (storage.setting?.limit && newVal.length > storage.setting?.limit) {
+      console.log('SAVE-----超出limit限制，删除最早的非active');
+      const index = newVal.sort((a, b) => a.timestamp - b.timestamp).findIndex((n) => !n.active);
+      newVal.splice(index, 1);
     }
+
+    console.log('SAVE-----已保存该请求');
     chrome.storage.local.set({
       [storageKey]: newVal,
-    })
+    });
+  }
 
+  // 保存storage为本地文件
+  if (!!msg.download) {
+    console.log('download');
+    chrome.downloads.download(
+      {
+        url: URL.createObjectURL(new Blob([JSON.stringify(storage)], {type: "application/json"})),
+        filename: `mock.${Date.now()}.json`,
+      },
+      () => {
+        console.log('123')
+        chrome?.runtime?.sendMessage({
+          downloadSuccess: true,
+        });
+      },
+    );
   }
 });
-
