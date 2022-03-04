@@ -1,81 +1,45 @@
-let storage = {};
+import { getRequestUrlPrams } from './utils/utils';
+import { StorageAll, StorageSetting } from './interfaces/common.interface';
+import { Request } from './interfaces/network.interface';
+
+
+let storage: StorageAll = {};
 chrome.storage.local.get((res) => {
   storage = res;
 
   if (!res.setting) {
+    const setting: StorageSetting = {
+      openSave: false,
+      openMock: false,
+      openUrl: '127.0.0.1:8888',
+      limit: null,
+      checkParams: true,
+      checkBody: true,
+      removeRequestUrlParams: [],
+      removeRequestBodyParams: ['t'],
+      listUrlRemoveStr: '',
+      filterUrl: [],
+    }
     chrome.storage.local.set({
-      setting: {
-        openSave: false,
-        openMock: false,
-        openUrl: '127.0.0.1:8888',
-        limit: null,
-        checkParams: true,
-        checkBody: true,
-        removeRequestUrlParams: [],
-        removeRequestBodyParams: ['t'],
-        listUrlRemoveStr: '',
-        filterUrl: [],
-      }
+      setting,
     })
   }
 })
-chrome.storage.local.onChanged.addListener(() => {
-  chrome.storage.local.get((res) => {
+chrome.storage.onChanged.addListener(() => {
+  chrome.storage.local.get((res: StorageAll) => {
     storage = res;
   })
 })
 
 
-const utils = (() => {
-  const Qs = {
-    parse: (str) => {
-      if (!str) {
-        return {};
-      }
-      try {
-        return JSON.parse(str);
-      } catch (error) {
-        
-      }
-      return str.split('&').reduce((prev, cur) => {
-        let tmp = cur.split('=');
-        prev[tmp[0]] = tmp[1];
-        return prev;
-      }, {})
-    },
-    stringify: (obj) => {
-      let res = [];
-      for (let n in obj) {
-        res.push(`${n}=${obj[n]}`);
-      }
-      res.join('&');
-      return res;
-    },
-  };
-
-  const getRequestUrlPrams = (url) => {
-    if (url.indexOf('?') > -1) {
-      let params = Qs.parse(url.substring(url.indexOf('?') + 1));
-      for (let n of storage.setting.removeRequestUrlParams) {
-        delete params[n];
-      }
-      return JSON.stringify(params);
-    } else {
-      return '{}';
-    }
-  }
-
-  return {
-    getRequestUrlPrams,
-    Qs,
-  }
-})();
 
 
 
-// 拦截请求
+
+/* 
+  MOCK：拦截请求并返回修改后的dataURL数据
+*/
 chrome.webRequest.onBeforeRequest.addListener(details => {
-
   if (!storage.setting?.openMock) {
     return;
   }
@@ -116,7 +80,7 @@ chrome.webRequest.onBeforeRequest.addListener(details => {
 
   const storageKey = url.split('?')[0];
 
-  const val = (storage[storageKey] || []).filter(n => (storage.setting.checkParams ? n.requestParams === utils.getRequestUrlPrams(url) : true) && (storage.setting.checkBody ? n.requestBody === requestBody : true));
+  const val = (storage[storageKey] || []).filter(n => (storage.setting.checkParams ? n.requestParams === getRequestUrlPrams(storage.setting, url) : true) && (storage.setting.checkBody ? n.requestBody === requestBody : true));
   
   let res = val.find(n => n.active)?.response;
 
@@ -128,37 +92,47 @@ chrome.webRequest.onBeforeRequest.addListener(details => {
 
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  // 接收devtool捕获的请求
+  /* 
+    SAVE
+    接收devtool捕获的请求
+    并保存至chrome.storage
+  */
   if (!!msg.network) {
+    // 检查是否开启保存开关
     if (!storage.setting?.openSave) {
       return;
     }
 
-    const { request, response } = msg.network;
+    const request: Request = msg.network.request;
+    const response: string = msg.network.response;  // 服务器真实相应的数据
 
+    // 过滤vue热更新请求
     if (/hot-update\.json/.test(request.url)) {
       console.log('hot-update')
       return;
     }
 
+    // 检查是否匹配配置生效的请求域名
     if (!new RegExp(storage.setting.openUrl).test(request.url)) {
       return;
     }
 
-    for (let n of storage.setting.filterUrl) {
+    // 检查是否匹配配置项filterUrl
+    for (const n of storage.setting.filterUrl) {
       if (request.url.includes(n)) {
         console.log('命中filterUrl');
         return;
       }
     }
     
+
     console.log(request, response)
 
     if (response === null) {
       return;
     }
 
-    const requestParams = utils.getRequestUrlPrams(request.url);
+    const requestParams = getRequestUrlPrams(storage.setting, request.url);
     console.log(requestParams)
     let requestBody = '{}';
     if (/x-www-form-urlencoded/.test(request?.postData?.mimeType)) {
