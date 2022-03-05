@@ -1,14 +1,27 @@
 import { getRequestUrlPrams, getSaveRequestBody, filterRequestParams, getMockRequestBody } from './utils/utils';
-import { DefaultSetting } from './DefaultSetting';
+// import { DefaultSetting } from './DefaultSetting';
 import { StorageAll, StorageSetting, StorageItem, StorageItemData } from '../interfaces/common.interface';
 import { Request } from '../interfaces/network.interface';
+
+// chrome.storage.local.get(n => {console.log(n)})
 
 let storage: StorageAll = {};
 chrome.storage.local.get((res) => {
   storage = res;
 
   if (!res.setting) {
-    const setting: StorageSetting = DefaultSetting;
+    const setting: StorageSetting = {
+      openSave: false,
+      openMock: false,
+      openUrl: '127.0.0.1:8888',
+      limit: null,
+      checkParams: true,
+      checkBody: true,
+      removeRequestUrlParams: [],
+      removeRequestBodyParams: ['t'],
+      listUrlRemoveStr: [],
+      filterUrl: [],
+    };
     chrome.storage.local.set({
       setting,
     });
@@ -28,6 +41,8 @@ chrome.storage.onChanged.addListener(() => {
     }
   });
 });
+
+let locationUrl = '';
 
 /* 
   MOCK：拦截请求并返回修改后的dataURL数据
@@ -61,7 +76,7 @@ chrome.webRequest.onBeforeRequest.addListener(
 
     const storageKey = url.split('?')[0]; // 请求的url地址，storage中的key
 
-    const response = (storage[storageKey] ?? [])?.find((n) => {
+    const response = (storage[storageKey]?.data ?? [])?.find((n) => {
       if (storage.setting.checkParams && n.requestParams !== JSON.stringify(getRequestUrlPrams(url))) {
         return false;
       }
@@ -84,6 +99,11 @@ chrome.webRequest.onBeforeRequest.addListener(
 );
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse): void => {
+  /* 获取当前页面URL */
+  if (!!msg.locationUrl) {
+    locationUrl = msg.locationUrl;
+  }
+
   /* 
     SAVE
     接收devtool捕获的请求
@@ -137,11 +157,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse): void => {
     const storageKey = request.url.split('?')[0]; // 请求的url地址，storage中的key
 
     // 检查重复
-    const responseRepeat = storage[storageKey]?.find?.((n) => {
+    const responseRepeat = storage[storageKey]?.data?.find?.((n) => {
       if (n.method !== request.method) {
         return false;
       }
       if (n.response !== response) {
+        return false;
+      }
+      if (n.locationUrl !== locationUrl) {
         return false;
       }
       if (storage.setting.checkParams && n.requestParams !== requestParams) {
@@ -157,29 +180,36 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse): void => {
       return;
     }
 
-    // 保存response至storage
-    let newVal: Array<StorageItemData> = [
-      ...(storage[storageKey] ?? []),
-      {
-        method: request.method,
-        requestParams,
-        requestBody,
-        response,
-        name: '',
-        timestamp: Date.now(),
-        active: false,
-      },
-    ];
+    /* 
+      保存response至storage
+    */
+    let saveData: StorageItem = {
+      ...(storage[storageKey] ?? {}),
+      timestamp: Date.now(),
+      data: [
+        ...(storage[storageKey]?.data ?? []),
+        {
+          method: request.method,
+          requestParams,
+          requestBody,
+          response,
+          timestamp: Date.now(),
+          locationUrl: locationUrl,
+          name: '',
+          active: false,
+        },
+      ],
+    };
 
-    if (storage.setting?.limit && newVal.length > storage.setting?.limit) {
+    if ((storage.setting?.limit && saveData.data.length > storage.setting?.limit) || (saveData.limit && saveData.data.length > saveData.limit)) {
       console.log('SAVE-----超出limit限制，删除最早的非active');
-      const index = newVal.sort((a, b) => a.timestamp - b.timestamp).findIndex((n) => !n.active);
-      newVal.splice(index, 1);
+      const index = saveData.data.sort((a, b) => a.timestamp - b.timestamp).findIndex((n) => !n.active);
+      saveData.data.splice(index, 1);
     }
 
     console.log('SAVE-----已保存该请求');
     chrome.storage.local.set({
-      [storageKey]: newVal,
+      [storageKey]: saveData,
     });
   }
 

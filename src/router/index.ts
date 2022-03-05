@@ -14,12 +14,12 @@ const routes = [
   {
     path: '/options',
     name: 'options',
-    component: () => import('@/views/Panel.vue'),
+    component: () => import('@/views/Panel/Panel.vue'),
   },
   {
     path: '/panel',
     name: 'panel',
-    component: () => import('@/views/Panel.vue'),
+    component: () => import('@/views/Panel/Panel.vue'),
   },
 
   {

@@ -15,21 +15,12 @@ export interface StorageSetting extends CommonSettingItem {
   openSave: boolean;
   openMock: boolean;
   openUrl: string;
-  listUrlRemoveStr: string;
+  listUrlRemoveStr: string[];
   filterUrl: string[];
   [prop: string]: any;
 };
 
-export interface StorageItem extends CommonSettingItem {
-  data: Array<StorageItemData>;
-  timestamp: number;
-  url: string;
-  top?: boolean;
-  name?: string;
-  compare?: boolean;
-}
-
-export interface StorageItemData {
+interface StorageItemDataI {
   method: string;
   requestParams: string;
   requestBody: string;
@@ -37,5 +28,17 @@ export interface StorageItemData {
   name: string;
   timestamp: number;
   active: boolean;
+  location?: string;
+  [prop: string]: any;
+}
+
+export interface StorageItemData extends StorageItemDataI {}
+
+export interface StorageItem extends CommonSettingItem {
+  data: StorageItemDataI[];
+  timestamp: number;
+  top?: boolean;
+  name?: string;
+  compare?: boolean;
   [prop: string]: any;
 }

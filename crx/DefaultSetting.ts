@@ -1,4 +1,4 @@
-export const DefaultSetting = {
+export const DefaultSetting = () => ({
   openSave: false,
   openMock: false,
   openUrl: '127.0.0.1:8888',
@@ -7,6 +7,6 @@ export const DefaultSetting = {
   checkBody: true,
   removeRequestUrlParams: [],
   removeRequestBodyParams: ['t'],
-  listUrlRemoveStr: '',
+  listUrlRemoveStr: [],
   filterUrl: [],
-};
+});

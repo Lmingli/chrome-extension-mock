@@ -19,7 +19,7 @@
               @change="handleSelectChange($event, row)"
             >
               <el-option
-                v-for="item in row.value.filter((n: StorageItemData) => !!n.name)"
+                v-for="item in row.value.data.filter((n: any) => !!n.name)"
                 :key="item.timestamp"
                 :label="item.name"
                 :value="item.timestamp"
@@ -37,15 +37,15 @@ import { reactive, ref, toRaw, onMounted } from 'vue';
 import { storage } from '@/utils/Chrome';
 import { ElMessage } from 'element-plus';
 import { DefaultSetting } from '~/crx/DefaultSetting';
-import { StorageSetting, StorageItemData } from '~/interfaces/common.interface'
+import { StorageSetting, StorageItemData, StorageItem } from '~/interfaces/common.interface';
 import { TableColumnCtx } from 'element-plus/es/components/table/src/table-column/defaults';
 
 interface Column {
   key: string;
-  value: StorageItemData[];
+  value: StorageItem;
 }
 
-const settingData = ref<StorageSetting>(DefaultSetting);
+const settingData = ref<StorageSetting>(DefaultSetting());
 
 const tableData = ref<Column[]>([]);
 const tableColumn = [
@@ -60,10 +60,11 @@ const tableColumn = [
   },
   { slot: 'select' },
 ];
-const active = reactive<{ [url: string]: number }>({});
+const active = reactive<{ [url: string]: number | string }>({});
 const setData = async () => {
   try {
     const data = await storage.get();
+    console.log(data)
     let tmp: Column[] = [];
     for (const n in data) {
       if (n === 'setting') {
@@ -73,12 +74,12 @@ const setData = async () => {
       if (n === 'tmp') {
         continue;
       }
-      if (data[n].find((x: StorageItemData) => !!x.name)) {
+      if (data[n].data.find((x: StorageItemData) => !!x.name)) {
         tmp.push({
           key: n,
           value: data[n],
         });
-        active[n] = data[n].find((x: StorageItemData) => x.active)?.timestamp ?? 0;
+        active[n] = data[n].data.find((x: StorageItemData) => x.active)?.timestamp ?? '';
       }
     }
     tableData.value = tmp;
@@ -100,11 +101,11 @@ onMounted(() => {
 const handleSelectChange = async (val: number, row: Column) => {
   console.log(val, row)
   const newVal = row.value;
-  for (let n of newVal) {
+  for (let n of newVal.data) {
     n.active = false;
   }
   if (!!val) {
-    const cur = newVal.find(n => n.timestamp === val);
+    const cur = newVal.data.find(n => n.timestamp === val);
     if (cur) {
       cur.active = true;
     }

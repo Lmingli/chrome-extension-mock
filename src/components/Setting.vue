@@ -65,8 +65,9 @@ import { storage } from '@/utils/Chrome';
 import { ElMessage } from 'element-plus';
 import { DefaultSetting } from '~/crx/DefaultSetting';
 import { StorageSetting } from '~/interfaces/common.interface';
+const ResponseTextDialog = defineAsyncComponent(() => import('@/components/ResponseTextDialog.vue'));
 
-const setting = reactive<StorageSetting>(DefaultSetting);
+const setting = reactive<StorageSetting>(DefaultSetting());
 
 
 const getSettingData = async () => {
@@ -120,9 +121,6 @@ const settingMoreConf = [
   { type: 'input', prop: 'limit', label: '相同域名条数上限' },
   { type: 'switch', prop: 'checkParams', label: '检查请求链接参数', values: [true, false], text: ['开启', ''] },
   { type: 'switch', prop: 'checkBody', label: '检查请求体', values: [true, false], text: ['开启', ''] },
-  // { type: 'select', prop: 'removeRequestUrlParams', label: '忽略请求链接参数', multiple: true, filterable: true, 'allow-create': true, enum: setting.removeRequestUrlParams, hideOptionAll: true },
-  // { type: 'select', prop: 'removeRequestBodyParams', label: '忽略请求体参数', multiple: true, filterable: true, 'allow-create': true, enum: setting.removeRequestBodyParams, hideOptionAll: true },
-  // { type: 'input', prop: 'listUrlRemoveStr', label: '列表中隐藏url中的字符' },
   { type: 'slotIn', slot: 'removeRequestUrlParams', label: '忽略请求链接参数' },
   { type: 'slotIn', slot: 'removeRequestBodyParams', label: '忽略请求体参数' },
   { type: 'slotIn', slot: 'listUrlRemoveStr', label: '列表中隐藏url中的字符' },
@@ -150,7 +148,6 @@ const handleSubmitMore: any = async (value: StorageSetting) => {
 
 
 
-const ResponseTextDialog = defineAsyncComponent(() => import('@/views/ResponseTextDialog.vue'));
 const dialogVisible = ref(false);
 const handleTextDialogChange = async (text: string) => {
   console.log(text)
@@ -177,8 +174,8 @@ const handleTextDialogChange = async (text: string) => {
 
 <style lang="scss">
 .drawer-setting-more {
-  width: 80% !important;
-  max-width: 500px;
+  width: 90% !important;
+  max-width: 800px;
   .el-input {
     width: 100% !important;
   }
