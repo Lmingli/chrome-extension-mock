@@ -23,9 +23,9 @@ export default ({ mode }) => defineConfig({
         input: [
           ...(mode === 'crx' ? [] : [resolve(__dirname, 'index.html')]),
           resolve(__dirname, 'crx/background.ts'),
-          resolve(__dirname, 'crx/content-script.js'),
-          resolve(__dirname, 'crx/devtools.js'),
-          resolve(__dirname, 'crx/inject.js'),
+          resolve(__dirname, 'crx/content-script.ts'),
+          resolve(__dirname, 'crx/devtools.ts'),
+          resolve(__dirname, 'crx/inject.ts'),
         ],
         output: {
           chunkFileNames: 'assets/[name].[hash].js',
