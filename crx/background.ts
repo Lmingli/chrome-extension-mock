@@ -1,24 +1,14 @@
 import { getRequestUrlPrams, getSaveRequestBody, filterRequestParams, getMockRequestBody } from './utils/utils';
-import { StorageAll, StorageSetting, StorageItem, StorageItemData } from './interfaces/common.interface';
-import { Request } from './interfaces/network.interface';
+import { DefaultSetting } from './DefaultSetting';
+import { StorageAll, StorageSetting, StorageItem, StorageItemData } from '../interfaces/common.interface';
+import { Request } from '../interfaces/network.interface';
 
 let storage: StorageAll = {};
 chrome.storage.local.get((res) => {
   storage = res;
 
   if (!res.setting) {
-    const setting: StorageSetting = {
-      openSave: false,
-      openMock: false,
-      openUrl: '127.0.0.1:8888',
-      limit: null,
-      checkParams: true,
-      checkBody: true,
-      removeRequestUrlParams: [],
-      removeRequestBodyParams: ['t'],
-      listUrlRemoveStr: '',
-      filterUrl: [],
-    };
+    const setting: StorageSetting = DefaultSetting;
     chrome.storage.local.set({
       setting,
     });

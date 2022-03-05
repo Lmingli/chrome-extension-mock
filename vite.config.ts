@@ -38,6 +38,7 @@ export default ({ mode }) => defineConfig({
     resolve: {
       alias: {
         '@': resolve(__dirname, './src'),
+        '~': resolve(__dirname, '.'),
       },
     },
     plugins: [
@@ -53,7 +54,7 @@ export default ({ mode }) => defineConfig({
           { src: 'crx/manifest.json', dest: 'dist' },
           { src: 'README.md', dest: 'dist' },
           { src: 'crx/devtools.html', dest: 'dist' },
-          { src: 'assets', dest: 'dist' },
+          { src: 'crx/assets', dest: 'dist' },
         ],
         hook: 'writeBundle',
       }),

@@ -7,17 +7,19 @@
     </div>
 
     <div>仅可选择已设置名称的数据</div>
-    <customize-table
-      :data="tableData"
-      :column="tableColumn"
-      style="margin-top: 10px;"
-    >
+    <customize-table :data="tableData" :column="tableColumn" style="margin-top: 10px;">
       <template #select>
         <el-table-column>
           <template #default="{ row }">
-            <el-select :model-value="active[row.key]" filterable clearable placeholder="Select" @change="handleSelectChange($event, row)">
+            <el-select
+              :model-value="active[row.key]"
+              filterable
+              clearable
+              placeholder="Select"
+              @change="handleSelectChange($event, row)"
+            >
               <el-option
-                v-for="item in row.value.filter(n => !!n.name)"
+                v-for="item in row.value.filter((n: StorageItemData) => !!n.name)"
                 :key="item.timestamp"
                 :label="item.name"
                 :value="item.timestamp"
@@ -27,47 +29,56 @@
         </el-table-column>
       </template>
     </customize-table>
-
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { reactive, ref, toRaw, onMounted } from 'vue';
 import { storage } from '@/utils/Chrome';
 import { ElMessage } from 'element-plus';
+import { DefaultSetting } from '~/crx/DefaultSetting';
+import { StorageSetting, StorageItemData } from '~/interfaces/common.interface'
+import { TableColumnCtx } from 'element-plus/es/components/table/src/table-column/defaults';
 
-const settingData = ref({});
+interface Column {
+  key: string;
+  value: StorageItemData[];
+}
 
-const tableData = ref([]);
+const settingData = ref<StorageSetting>(DefaultSetting);
+
+const tableData = ref<Column[]>([]);
 const tableColumn = [
-  { label: "url", prop: 'key', formatter: (row, column, cellValue, index) => {
-    let value = cellValue;
-    for (let n of settingData.value.listUrlRemoveStr) {
-      value = value.replace(n, '');
+  {
+    label: "url", prop: 'key', formatter: (_row: Column, _column: TableColumnCtx<Column>, cellValue: string) => {
+      let value = cellValue;
+      for (let n of settingData.value.listUrlRemoveStr) {
+        value = value.replace(n, '');
+      }
+      return value;
     }
-    return value;
-  } },
+  },
   { slot: 'select' },
 ];
-const active = reactive({});
-const setData = async() => {
+const active = reactive<{ [url: string]: number }>({});
+const setData = async () => {
   try {
     const data = await storage.get();
-    let tmp = [];
-    for (let n in data) {
+    let tmp: Column[] = [];
+    for (const n in data) {
       if (n === 'setting') {
-        settingData.value = data[n];
+        settingData.value = <StorageSetting>data[n];
         continue;
       };
       if (n === 'tmp') {
         continue;
       }
-      if (data[n].find(n => !!n.name)) {
+      if (data[n].find((x: StorageItemData) => !!x.name)) {
         tmp.push({
           key: n,
           value: data[n],
         });
-        active[n] = data[n].find(n => n.active)?.timestamp ?? '';
+        active[n] = data[n].find((x: StorageItemData) => x.active)?.timestamp ?? 0;
       }
     }
     tableData.value = tmp;
@@ -86,14 +97,17 @@ onMounted(() => {
 })
 
 
-const handleSelectChange = async(val, row) => {
-  console.log(val,row)
-  let newVal = row.value;
+const handleSelectChange = async (val: number, row: Column) => {
+  console.log(val, row)
+  const newVal = row.value;
   for (let n of newVal) {
     n.active = false;
   }
   if (!!val) {
-    newVal.find(n => n.timestamp === val).active = true;
+    const cur = newVal.find(n => n.timestamp === val);
+    if (cur) {
+      cur.active = true;
+    }
   }
   await storage.set({
     [row.key]: toRaw(newVal),
@@ -103,5 +117,4 @@ const handleSelectChange = async(val, row) => {
 </script>
 
 <style lang='scss' scoped>
-
 </style>

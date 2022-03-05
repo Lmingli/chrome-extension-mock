@@ -1,13 +1,10 @@
 <template>
-  <div>
-    404
-  </div>
+  <div>404</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 
 </script>
 
 <style lang='scss' scoped>
-
 </style>

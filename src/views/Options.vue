@@ -1,13 +1,10 @@
 <template>
-  <div>
-options
-  </div>
+  <div>options</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 
 </script>
 
 <style lang='scss' scoped>
-
 </style>

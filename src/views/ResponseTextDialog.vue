@@ -1,11 +1,6 @@
 <template>
   <div>
-    <el-dialog
-      v-model="visible"
-      width="80%"
-      top="10vh"
-      :before-close="handleClose"
-    >
+    <el-dialog v-model="visible" width="80%" top="10vh" :before-close="handleClose">
       <div ref="editorRef" style="height: 60vh;margin-bottom: 20px;"></div>
       <template #footer>
         <div style="text-align: center;">
@@ -17,25 +12,31 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { nextTick, onMounted, ref, watch, watchEffect } from 'vue';
 import JSONEditor from 'jsoneditor';
 import 'jsoneditor/dist/jsoneditor.min.css';
 import { ElMessage } from 'element-plus';
 
-const props = defineProps(["modelValue", "data"]);
-const emits = defineEmits(["update:modelValue", "change"]);
+const props = defineProps<{
+  modelValue: boolean;
+  data: string;
+}>();
+const emits = defineEmits<{
+  (e: 'change', editorValue: string): void;
+  (e: 'update:modelValue', visible: boolean): void;
+}>();
 
 const visible = ref(props.modelValue);
 watchEffect(() => {
   visible.value = props.modelValue;
 });
 
-const editorRef = ref(null);
+const editorRef = ref();
 const editor = ref();
 
-onMounted(async() => {
-  let text = '';
+onMounted(async () => {
+  let text = {};
   try {
     text = JSON.parse(props.data)
   } catch (error) {
@@ -63,7 +64,7 @@ const handleSave = () => {
       editor.value.set(obj);
       ElMessage.success('整理格式成功');
     } catch (error) {
-      console.log('123',error)
+      console.log('123', error)
       ElMessage.error('JSON格式错误');
     }
   }
@@ -72,7 +73,7 @@ const handleCancel = () => {
   visible.value = false;
 }
 
-watch(visible, (newVal) => {
+watch(visible, (newVal: boolean) => {
   emits("update:modelValue", newVal);
 });
 
@@ -82,5 +83,4 @@ const handleClose = () => {
 </script>
 
 <style lang='scss' scoped>
-
 </style>

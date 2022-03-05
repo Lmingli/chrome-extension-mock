@@ -13,6 +13,7 @@
       <el-upload action="" :show-file-list="false" accept=".json" :before-upload="handleUpload" style="margin-left: 12px;display: inline-block;">
         <el-button type="primary">上传配置文件</el-button>
       </el-upload>
+
       <customize-table
         :data="tableData.filter(n => n.key.includes(searchString))"
         :column="tableColumn"
@@ -34,7 +35,7 @@
                 :column="expandColumn"
                 :show-header="false"
                 class="table-inside"
-                @row-click="(a, b) => handleExpandRowClick(a, b, row)"
+                @row-click="(a: any, b: any) => handleExpandRowClick(a, b, row)"
               >
                 <template #before>
                   <el-table-column align="center" width="90px">
@@ -88,25 +89,33 @@
     </el-main>
   </el-container>
 
-  <response-text-dialog v-if="dialogVisible" v-model="dialogVisible" :data="responseText" @change="handleTextDialogChange"></response-text-dialog>
+  <ResponseTextDialog v-if="dialogVisible" v-model="dialogVisible" :data="responseText" @change="handleTextDialogChange"></ResponseTextDialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { onMounted, ref, toRaw, shallowRef, defineAsyncComponent, reactive } from 'vue';
 import { storage } from '@/utils/Chrome';
 import { ElMessage, ElMessageBox } from 'element-plus';
-console.log(storage)
+import { DefaultSetting } from '~/crx/DefaultSetting';
+import { StorageItemData, StorageSetting } from '~/interfaces/common.interface';
 
-const settingData = ref({});
+interface Column {
+  key: string;
+  value: StorageItemData[];
+  count: number;
+  size: number;
+}
 
-const tableData = shallowRef([]);
+const settingData = ref<StorageSetting>(DefaultSetting);
+
+const tableData = shallowRef<Column[]>([]);
 const tableColumn = [
   { slot: 'expand' },
   { slot: 'url' },
   { label: 'count', prop: 'count' },
   { label: 'size', prop: 'size' },
 ];
-const tableUrlFormatter = (cellValue) => {
+const tableUrlFormatter = (cellValue: string) => {
   let value = cellValue;
   for (let n of settingData.value.listUrlRemoveStr) {
     value = value.replace(n, '');
@@ -117,10 +126,10 @@ const tableUrlFormatter = (cellValue) => {
 const setData = async() => {
   try {
     const data = await storage.get();
-    let tmp = [];
+    let tmp: Column[] = [];
     for (let n in data) {
       if (n === 'setting') {
-        settingData.value = data[n];
+        settingData.value = <StorageSetting>data[n];
         continue;
       };
       if (n === 'tmp') {
@@ -156,21 +165,27 @@ const expandColumn = [
 
 
 
-const handleDelete = async ({ key }) => {
+const handleDelete = async ({ key }: Column) => {
   await storage.remove(key);
   ElMessage.success('删除成功');
   tableData.value.splice(tableData.value.findIndex(n => n.key === key), 1);
 }
-const showUncheck = ({ value }) => value.findIndex(n => n.active === true) > -1;
-const handleUnchek = async({ key, value }) => {
-  value.find(n => n.active === true).active = false;
+const showUncheck = ({ value }: Column) => value.findIndex(n => n.active === true) > -1;
+const handleUnchek = async({ key, value }: Column) => {
+  const cur = value.find(n => n.active === true);
+  if (cur) {
+    cur.active = false;
+  }
   await storage.set({
     [key]: toRaw(value),
   });
 }
 
-const handleAdd = ({ key }) => {
-  const data = tableData.value.find(n => n.key === key)
+const handleAdd = ({ key }: Column) => {
+  const data = tableData.value.find(n => n.key === key);
+  if (!data) {
+    return;
+  }
   const last = data.value[data.value.length - 1];
   data.value.push({
     active: false,
@@ -222,11 +237,11 @@ const handleResetActive = async() => {
 const searchString = ref('');
 
 
-const expandRowKeys = ref([]);
-const handleExpandChange = (row, expanded) => {
+const expandRowKeys = ref<string[]>([]);
+const handleExpandChange = (_row: any, expanded: Column[]) => {
   expandRowKeys.value = expanded.map(n => n.key);
 }
-const handleRowClick = ({ key, value }, column) => {
+const handleRowClick = ({ key, value }: Column, column: any) => {
   if (!(value instanceof Array)) {
     return;
   }
@@ -239,7 +254,7 @@ const handleRowClick = ({ key, value }, column) => {
     expandRowKeys.value.push(key);
   }
 }
-const rowStyle = ({ row, rowIndex }) => {
+const rowStyle = ({ row, rowIndex }: any) => {
   return {
     'background-color': rowIndex % 2 === 0 ? 'rgb(236, 245, 255)' : 'rgb(245, 254, 240)',
   }
@@ -248,7 +263,7 @@ const rowStyle = ({ row, rowIndex }) => {
 
 
 
-const handleCancelActive = async(row) => {
+const handleCancelActive = async(row: Column) => {
   let newVal = row.value;
   for (let n of newVal) {
     n.active = false;
@@ -258,19 +273,22 @@ const handleCancelActive = async(row) => {
   });
   ElMessage.success('设置成功');
 }
-const handleChooseActive = async(row, expandRow) => {
+const handleChooseActive = async(row: Column, expandRow: StorageItemData) => {
   let newVal = row.value;
   for (let n of newVal) {
     n.active = false;
   }
-  newVal.find(n => n.timestamp === expandRow.timestamp).active = true;
+  let cur = newVal.find(n => n.timestamp === expandRow.timestamp);
+  if (cur) {
+    cur.active = true;
+  }
   console.log(toRaw(newVal))
   await storage.set({
     [row.key]: toRaw(newVal),
   });
   ElMessage.success('设置成功');
 }
-const handleExpandDelete = async(row, expandRow) => {
+const handleExpandDelete = async(row: Column, expandRow: StorageItemData) => {
   let newVal = row.value;
   const idx = newVal.findIndex(n => n.timestamp === expandRow.timestamp);
   newVal.splice(idx, 1);
@@ -279,9 +297,12 @@ const handleExpandDelete = async(row, expandRow) => {
   });
   ElMessage.success('删除成功');
 }
-const handleExpandName = async(row, expandRow) => {
+const handleExpandName = async(row: Column, expandRow: StorageItemData) => {
   let newVal = row.value;
-  newVal.find(n => n.timestamp === expandRow.timestamp).name = expandRow.name;
+  let cur = newVal.find(n => n.timestamp === expandRow.timestamp);
+  if (cur) {
+    cur.name = expandRow.name;
+  }
   await storage.set({
     [row.key]: toRaw(newVal),
   });
@@ -293,13 +314,13 @@ const handleExpandName = async(row, expandRow) => {
 const ResponseTextDialog = defineAsyncComponent(() => import('./ResponseTextDialog.vue'));
 const dialogVisible = ref(false);
 const responseText = ref();
-const dialogInfo = reactive({
-  timestamp: '',
+const dialogInfo = reactive<any>({
+  timestamp: 0,
   row: {},
   property: '',
 });
 // 点击response
-const handleExpandRowClick = function(a, b, row) {
+const handleExpandRowClick = function(a: StorageItemData, b: any, row: Column) {
   if (['requestParams', 'requestBody', 'response'].includes(b.property)) {
     responseText.value = a[b.property];
     dialogVisible.value = true;
@@ -308,10 +329,13 @@ const handleExpandRowClick = function(a, b, row) {
     dialogInfo.property = b.property;
   }
 }
-const handleTextDialogChange = async(text) => {
+const handleTextDialogChange = async(text: string) => {
   console.log(text)
-  let newVal = dialogInfo.row.value
-  newVal.find(n => n.timestamp === dialogInfo.timestamp)[dialogInfo.property] = text;
+  let newVal: StorageItemData[] = dialogInfo.row.value
+  let cur = newVal.find((n) => n.timestamp === dialogInfo.timestamp);
+  if (cur) {
+    cur[dialogInfo.property] = text;
+  }
   await storage.set({
     [dialogInfo.row.key]: toRaw(newVal),
   });
@@ -325,9 +349,9 @@ const handleDownload = async() => {
     download: true,
   });
 }
-const handleUpload = (file) => {
+const handleUpload: any = (file: File) => {
   const reader = new FileReader();  
-  reader.onload = async(event) => {  
+  reader.onload = async(event: any) => {  
     try {
       const obj = JSON.parse(event.target.result);
       try {

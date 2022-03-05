@@ -1,5 +1,6 @@
 import ChromeDev from "./ChromeDev";
 const { MODE } = import.meta.env;
+import { StorageAll } from '~/interfaces/common.interface';
 
 if (MODE === 'development') {
   ChromeDev();
@@ -7,7 +8,7 @@ if (MODE === 'development') {
 
 
 export const storage = {
-  get: (params = null) => new Promise((resolve) => {
+  get: (params = null): Promise<StorageAll> => new Promise((resolve) => {
     chrome.storage.local.get(params, (res) => {
       resolve(res ?? {});
     })

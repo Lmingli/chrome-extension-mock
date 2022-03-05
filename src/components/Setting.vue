@@ -13,12 +13,8 @@
       </template>
     </customize-form>
   </div>
-  
-  <el-drawer
-    v-model="drawer"
-    :before-close="handleClose"
-    custom-class="drawer-setting-more"
-  >
+
+  <el-drawer v-model="drawer" :before-close="handleClose" custom-class="drawer-setting-more">
     <!-- <div style="margin-bottom: 20px;">
       <el-popconfirm title="确定进行此项操作？" @confirm="handleUpload">
         <template #reference>
@@ -30,7 +26,7 @@
           <el-button type="primary">从google账户合并</el-button>
         </template>
       </el-popconfirm>
-    </div> -->
+    </div>-->
     <customize-form
       :form="setting"
       v-model:loading="loading.settingMore"
@@ -40,44 +36,40 @@
       label-width="200px"
     >
       <template #removeRequestUrlParams="{ form }">
-        <editable-list v-model="form.removeRequestUrlParams"></editable-list>
+        <EditableList v-model="form.removeRequestUrlParams"></EditableList>
       </template>
       <template #removeRequestBodyParams="{ form }">
-        <editable-list v-model="form.removeRequestBodyParams"></editable-list>
+        <EditableList v-model="form.removeRequestBodyParams"></EditableList>
       </template>
       <template #listUrlRemoveStr="{ form }">
-        <editable-list v-model="form.listUrlRemoveStr"></editable-list>
+        <EditableList v-model="form.listUrlRemoveStr"></EditableList>
       </template>
       <template #filterUrl="{ form }">
-        <editable-list v-model="form.filterUrl"></editable-list>
+        <EditableList v-model="form.filterUrl"></EditableList>
       </template>
     </customize-form>
     <div @click="dialogVisible = true;">{{ setting }}</div>
   </el-drawer>
 
-  <response-text-dialog v-if="dialogVisible" v-model="dialogVisible" :data="JSON.stringify(setting)" @change="handleTextDialogChange"></response-text-dialog>
+  <ResponseTextDialog
+    v-if="dialogVisible"
+    v-model="dialogVisible"
+    :data="JSON.stringify(setting)"
+    @change="handleTextDialogChange"
+  ></ResponseTextDialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { onMounted, reactive, ref, defineAsyncComponent } from 'vue';
 import { storage } from '@/utils/Chrome';
 import { ElMessage } from 'element-plus';
+import { DefaultSetting } from '~/crx/DefaultSetting';
+import { StorageSetting } from '~/interfaces/common.interface';
 
-const setting = reactive({
-  openSave: false,
-  openMock: false,
-  openUrl: '',
-  limit: null,
-  checkParams: true,
-  checkBody: true,
-  removeRequestUrlParams: [],
-  removeRequestBodyParams: [],
-  listUrlRemoveStr: [],
-  filterUrl: [],
-});
+const setting = reactive<StorageSetting>(DefaultSetting);
 
 
-const getSettingData = async() => {
+const getSettingData = async () => {
   try {
     const res = await storage.get();
     for (let n in res.setting) {
@@ -92,11 +84,11 @@ onMounted(() => {
   storage.onchange(getSettingData);
 });
 
-const handleSubmit = async(value) => {
+const handleSubmit: any = async (value: StorageSetting) => {
   console.log('change', value)
   try {
     await storage.set({
-      setting: value,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+      setting: value,
     });
     ElMessage.success('设置成功');
   } catch (error) {
@@ -119,7 +111,7 @@ const loading = reactive({
 
 
 const drawer = ref(false);
-const handleClose = (done) => {
+const handleClose = (done: () => void) => {
   done();
 }
 
@@ -137,11 +129,11 @@ const settingMoreConf = [
   { type: 'slotIn', slot: 'filterUrl', label: '过滤url中包含的请求' },
 ];
 
-const handleSubmitMore = async (value) => {
+const handleSubmitMore: any = async (value: StorageSetting) => {
   console.log('handleSettingMoreSubmit', value);
   const filterProps = ['filterUrl', 'removeRequestUrlParams', 'listUrlRemoveStr', 'removeRequestBodyParams'];
   for (let n of filterProps) {
-    value[n] = value[n].filter(x => !!x);
+    value[n] = value[n].filter((x: string) => !!x);
   }
 
   try {
@@ -160,7 +152,7 @@ const handleSubmitMore = async (value) => {
 
 const ResponseTextDialog = defineAsyncComponent(() => import('@/views/ResponseTextDialog.vue'));
 const dialogVisible = ref(false);
-const handleTextDialogChange = async(text) => {
+const handleTextDialogChange = async (text: string) => {
   console.log(text)
   try {
     await storage.set({
