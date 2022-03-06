@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, toRaw, toRefs } from 'vue';
+import { onMounted, reactive, ref, toRaw, toRefs } from 'vue';
 import { ElMessage } from 'element-plus';
 import { storage } from '@/utils/Chrome';
 import { StorageItem, StorageItemData, StorageSetting } from '~/interfaces/common.interface';
@@ -108,11 +108,22 @@ const setting: any = reactive({
   removeRequestUrlParams: storageSetting.value.removeRequestUrlParams,
   removeRequestBodyParams: storageSetting.value.removeRequestBodyParams,
 })
-for (const n in storageItem.value) {
-  if (n in setting) {
-    setting[n] = storageItem.value[n];
+const setSetting = () => {
+  for (const n in storageItem.value) {
+    if (n in setting) {
+      setting[n] = storageItem.value[n];
+    }
   }
 }
+setSetting();
+onMounted(() => {
+  try {
+    storage.onchange(setSetting);
+  } catch (error) {
+    console.log(error);
+  }
+})
+
 const settingConf = [
   { type: 'switch', prop: 'compare', label: '对比下次请求', values: [true, false] },
   { type: 'switch', prop: 'top', label: '置顶', values: [true, false] },

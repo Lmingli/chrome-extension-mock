@@ -3,7 +3,7 @@
       v-model="visible"
       width="80%"
       top="10vh"
-      :before-close="() => emits('update:visible', false)"
+      :before-close="handleClose"
       :close-on-click-modal="false"
       :close-on-press-escape="false"
       destroy-on-close
@@ -47,6 +47,7 @@ const props = defineProps<{
 }>();
 const emits = defineEmits<{
   (e: 'update:visible', value: boolean): any;
+  (e: 'close'): void;
   (e: 'save', str: string): any;
 }>();
 
@@ -76,6 +77,10 @@ const init = async() => {
   });
 }
 
+const handleClose = () => {
+  emits('close');
+  emits('update:visible', false);
+}
 
 const handleSave = () => {
   let editValue = editor.value.edit.getValue();

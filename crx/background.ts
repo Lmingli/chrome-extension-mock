@@ -80,7 +80,7 @@ chrome.webRequest.onBeforeRequest.addListener(
       params: requestParamsAll,
       filter: [
         ...storage.setting.removeRequestUrlParams,
-        ...(storage[storageKey].removeRequestUrlParams ?? []),
+        ...(storage[storageKey]?.removeRequestUrlParams ?? []),
       ], 
     }); 
     const requestParams = JSON.stringify(requestParamsObj); // 过滤后的url参数
@@ -90,7 +90,7 @@ chrome.webRequest.onBeforeRequest.addListener(
       params: requestBodyAll,
       filter: [
         ...storage.setting.removeRequestBodyParams,
-        ...(storage[storageKey].removeRequestBodyParams ?? []),
+        ...(storage[storageKey]?.removeRequestBodyParams ?? []),
       ],
     });
     const requestBody = JSON.stringify(requestBodyObj); // 过滤后请求体参数
@@ -131,6 +131,11 @@ chrome.webRequest.onBeforeRequest.addListener(
       }
 
       console.log('MOCK-----已拦截该请求');
+
+      chrome?.runtime?.sendMessage({
+        info: 'MOCK-----已MOCK该请求',
+      });
+
       return {
         redirectUrl: `data:application/json;charset=UTF-8,${response}`,
       };
@@ -208,7 +213,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse): void => {
       params: requestParamsAll,
       filter: [
         ...storage.setting.removeRequestUrlParams,
-        ...(storage[storageKey].removeRequestUrlParams ?? []),
+        ...(storage[storageKey]?.removeRequestUrlParams ?? []),
       ], 
     }); 
     const requestParams = JSON.stringify(requestParamsObj); // 过滤后的url参数
@@ -218,7 +223,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse): void => {
       params: requestBodyAll,
       filter: [
         ...storage.setting.removeRequestBodyParams,
-        ...(storage[storageKey].removeRequestBodyParams ?? []),
+        ...(storage[storageKey]?.removeRequestBodyParams ?? []),
       ],
     });
     const requestBody = JSON.stringify(requestBodyObj); // 过滤后请求体参数
@@ -286,6 +291,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse): void => {
     }
 
     console.log('SAVE-----已保存该请求');
+    chrome?.runtime?.sendMessage({
+      info: 'SAVE-----已保存该请求',
+    });
+
     chrome.storage.local.set({
       [storageKey]: saveData,
     });

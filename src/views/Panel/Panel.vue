@@ -79,8 +79,21 @@
     </el-main>
   </el-container>
 
-  <ResponseTextDialog v-if="dialogVisible" v-model="dialogVisible" :data="responseText" @change="handleTextDialogChange" />
-  <CodeMirrorDialog v-if="dialogCodeMirrorVisible" v-model:visible="dialogCodeMirrorVisible" :compareMockData="compareMockData" :compareRealData="compareRealData" @save="handleCodeMirrorSave" />
+  <ResponseTextDialog
+    v-if="dialogVisible"
+    v-model="dialogVisible"
+    :data="responseText"
+    @change="handleTextDialogChange"
+  />
+
+  <CodeMirrorDialog
+    v-if="dialogCodeMirrorVisible"
+    v-model:visible="dialogCodeMirrorVisible"
+    :compareMockData="compareMockData"
+    :compareRealData="compareRealData"
+    @close="handleCodeMirrorClose"
+    @save="handleCodeMirrorSave" 
+  />
 </template>
 
 <script setup lang="ts">
@@ -93,6 +106,7 @@ import { StorageItem, StorageItemData, StorageSetting } from '~/interfaces/commo
 import PanelOperate from './PanelOperate.vue';
 import TableOperate from './TableOperate.vue';
 const ResponseTextDialog = defineAsyncComponent(() => import('@/components/ResponseTextDialog.vue'));
+const CodeMirrorDialog = defineAsyncComponent(() => import('@/components/CodeMirrorDialog.vue'));
 
 interface Column {
   url: string;
@@ -159,7 +173,16 @@ const setStorage = async() => {
         size: JSON.stringify(storageItem).length,
       });
     }
-    tmp = tmp.sort((a,b) => !a.storageItem.top && b.storageItem.top ? b.storageItem.timestamp - a.storageItem.timestamp : -1);
+    tmp = tmp.sort((a,b) => {
+      if (!a.storageItem.top && b.storageItem.top) {
+        return 1;
+      }
+      if (a.storageItem.top && !b.storageItem.top) {
+        return -1;
+      }
+      return b.storageItem.timestamp - a.storageItem.timestamp;
+    })
+    console.log(tmp)
     tableData.value = tmp;
   } catch (error) {
     console.log(error)
@@ -314,6 +337,10 @@ const handleTextDialogChange = async(text: string) => {
 const dialogCodeMirrorVisible = ref(false);
 const compareMockData = ref('');
 const compareRealData = ref('');
+const handleCodeMirrorClose = () => {
+  compareMockData.value = '';
+  compareRealData.value = '';
+}
 const handleCodeMirrorSave = async(str: string) => {
   let cur = tableData.value.find(n => n.storageItem.compare);
   if (cur) {
@@ -330,12 +357,17 @@ const handleCodeMirrorSave = async(str: string) => {
   }
 }
 chrome?.runtime?.onMessage?.addListener((msg): void => {
+  if (!!msg.info) {
+    ElMessage.info(msg.info);
+  }
+
   if (!!msg.compareMockData) {
     compareMockData.value = msg.compareMockData;
     if (!!compareRealData.value) {
       dialogCodeMirrorVisible.value = true;
     }
   }
+
   if (!!msg.compareRealData) {
     compareRealData.value = msg.compareRealData;
     if (!!compareMockData.value) {
