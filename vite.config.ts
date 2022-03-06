@@ -31,7 +31,7 @@ export default ({ mode }) => defineConfig({
           chunkFileNames: 'assets/[name].[hash].js',
           assetFileNames: 'assets/[name].[hash].[ext]',
           entryFileNames: '[name].js',
-          dir: 'dist',
+          dir: 'chrome-extensions-mock',
         },
       },
     },
@@ -51,10 +51,10 @@ export default ({ mode }) => defineConfig({
       }),
       copy({
         targets: [
-          { src: 'crx/manifest.json', dest: 'dist' },
-          { src: 'README.md', dest: 'dist' },
-          { src: 'crx/devtools.html', dest: 'dist' },
-          { src: 'crx/assets', dest: 'dist' },
+          { src: 'crx/manifest.json', dest: 'chrome-extensions-mock' },
+          { src: 'README.md', dest: 'chrome-extensions-mock' },
+          { src: 'crx/devtools.html', dest: 'chrome-extensions-mock' },
+          { src: 'crx/assets', dest: 'chrome-extensions-mock' },
         ],
         hook: 'writeBundle',
       }),

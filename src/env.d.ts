@@ -8,3 +8,9 @@ declare module '*.vue' {
 interface ImportMeta {
   env: Record<string, unknown>
 }
+interface Window {
+  diff_match_patch: DiffMatchPatch;
+  DIFF_DELETE: number;
+  DIFF_INSERT: number;
+  DIFF_EQUAL: number;
+}

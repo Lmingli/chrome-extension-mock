@@ -61,6 +61,7 @@
         <template #url>
           <el-table-column label="url" prop="url" min-width="200px">
             <template #default="{ row }">
+              <el-button v-if="row.storageItem.compare" circle type="danger" :icon="Sunny" size="small" style="margin-right: 5px;" @click="handleCancelCompare(row)"></el-button>
               <el-tag v-if="row.storageItem.top" type="danger" effect="dark" style="margin-right: 5px;cursor: pointer;" @click="handleCancelTop(row)">置顶</el-tag>
               <el-tooltip effect="dark" :content="row.url" placement="top">{{ row.storageItem.name ?? tableUrlFormatter(row.url) }}</el-tooltip>
             </template>
@@ -78,13 +79,15 @@
     </el-main>
   </el-container>
 
-  <ResponseTextDialog v-if="dialogVisible" v-model="dialogVisible" :data="responseText" @change="handleTextDialogChange"></ResponseTextDialog>
+  <ResponseTextDialog v-if="dialogVisible" v-model="dialogVisible" :data="responseText" @change="handleTextDialogChange" />
+  <CodeMirrorDialog v-if="dialogCodeMirrorVisible" v-model:visible="dialogCodeMirrorVisible" :compareMockData="compareMockData" :compareRealData="compareRealData" @save="handleCodeMirrorSave" />
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref, toRaw, shallowRef, defineAsyncComponent, reactive, computed } from 'vue';
 import { storage } from '@/utils/Chrome';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { Sunny } from '@element-plus/icons-vue';
 import { DefaultSetting } from '~/crx/DefaultSetting';
 import { StorageItem, StorageItemData, StorageSetting } from '~/interfaces/common.interface';
 import PanelOperate from './PanelOperate.vue';
@@ -180,11 +183,19 @@ const expandColumn = [
 
 
 
+const handleCancelCompare = async({ url, storageItem }: Column) => {
+  storageItem.compare = false;
+  await storage.set({
+    [url]: toRaw(storageItem),
+  });
+  ElMessage.info('取消对比');
+}
 const handleCancelTop = async({ url, storageItem }: Column) => {
   storageItem.top = false;
   await storage.set({
     [url]: toRaw(storageItem),
   });
+  ElMessage.info('取消置顶');
 }
 
 const handleAdd = (url: string) => {
@@ -298,6 +309,40 @@ const handleTextDialogChange = async(text: string) => {
   });
   ElMessage.success('保存成功');
 }
+
+
+const dialogCodeMirrorVisible = ref(false);
+const compareMockData = ref('');
+const compareRealData = ref('');
+const handleCodeMirrorSave = async(str: string) => {
+  let cur = tableData.value.find(n => n.storageItem.compare);
+  if (cur) {
+    const activeData = cur.storageItem.data.find(n => !!n.active);
+    if (activeData) {
+      cur.storageItem.compare = false;
+      activeData.response = str;
+      await storage.set({
+        [cur.url]: toRaw(cur.storageItem),
+      });
+      dialogCodeMirrorVisible.value = false;
+      ElMessage.success('保存成功');
+    }
+  }
+}
+chrome?.runtime?.onMessage?.addListener((msg): void => {
+  if (!!msg.compareMockData) {
+    compareMockData.value = msg.compareMockData;
+    if (!!compareRealData.value) {
+      dialogCodeMirrorVisible.value = true;
+    }
+  }
+  if (!!msg.compareRealData) {
+    compareRealData.value = msg.compareRealData;
+    if (!!compareMockData.value) {
+      dialogCodeMirrorVisible.value = true;
+    }
+  }
+})
 
 </script>
 

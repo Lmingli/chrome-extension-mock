@@ -116,7 +116,20 @@ chrome.webRequest.onBeforeRequest.addListener(
     })?.response;
     console.log(response);
 
+
     if (!!response) {
+      if (storage[storageKey].compare) {
+        try {
+          console.log('MOCK-----已加入对比');
+          chrome?.runtime?.sendMessage({
+            compareMockData: JSON.stringify(JSON.parse(response), null, 2),
+          });
+          return {
+            redirectUrl: null,
+          };
+        } catch (error) {}
+      }
+
       console.log('MOCK-----已拦截该请求');
       return {
         redirectUrl: `data:application/json;charset=UTF-8,${response}`,
@@ -178,6 +191,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse): void => {
 
 
     const storageKey = request.url.split('?')[0]; // 请求的url地址，storage中的key
+
+
+    try {
+      if (storage[storageKey].compare) {
+        console.log('SAVE-----已加入对比')
+        chrome?.runtime?.sendMessage({
+          compareRealData: JSON.stringify(JSON.parse(response), null, 2),
+        });
+      }
+    } catch (error) {}
 
 
     const requestParamsAll = getRequestUrlPrams(request.url); // 获取所有url中参数
@@ -277,7 +300,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse): void => {
         filename: `mock.${Date.now()}.json`,
       },
       () => {
-        console.log('123')
         chrome?.runtime?.sendMessage({
           downloadSuccess: true,
         });

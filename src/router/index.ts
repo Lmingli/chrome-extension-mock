@@ -23,6 +23,12 @@ const routes = [
   },
 
   {
+    path: '/test',
+    name: 'test',
+    component: () => import('@/components/CodeMirrorDialog.vue'),
+  },
+
+  {
     path: '/:pathMatch(.*)*',
     component: () => import('@/components/404.vue'),
   },

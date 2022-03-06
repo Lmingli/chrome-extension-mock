@@ -12,6 +12,7 @@ node_modules
 dist-ssr
 *.local
 dist.zip
+chrome-extensions-mock
 
 # Editor directories and files
 .vscode/*

@@ -100,6 +100,7 @@ const handleDelete = async () => {
 
 const drawer = ref(false);
 const setting: any = reactive({
+  compare: false,
   top: false,
   limit: storageSetting.value.limit,
   checkParams: storageSetting.value.checkParams,
@@ -113,6 +114,7 @@ for (const n in storageItem.value) {
   }
 }
 const settingConf = [
+  { type: 'switch', prop: 'compare', label: '对比下次请求', values: [true, false] },
   { type: 'switch', prop: 'top', label: '置顶', values: [true, false] },
   { type: 'input', prop: 'name', label: '名称' },
   { type: 'input', prop: 'limit', label: '相同域名条数上限' },
@@ -126,6 +128,18 @@ const handleClose = (done: () => void) => {
 }
 const handleSubmit = async(form: any) => {
   console.log(storageItem, form)
+  if (form.compare) {
+    const cur: any = tableData.value.find(n => n.storageItem.compare);
+    if (cur) {
+      await storage.set({
+        [cur.url]: {
+          ...cur.storageItem,
+          compare: false
+        },
+      })
+      ElMessage.info('取消其它置顶');
+    }
+  }
   // return;
   await storage.set({
     [url.value]: {

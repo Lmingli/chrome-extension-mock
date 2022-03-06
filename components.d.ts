@@ -5,6 +5,7 @@
 declare module 'vue' {
   export interface GlobalComponents {
     404: typeof import('./src/components/404.vue')['default']
+    CodeMirrorDialog: typeof import('./src/components/CodeMirrorDialog.vue')['default']
     CustomizeDialogForm: typeof import('./src/components/customize/CustomizeDialogForm.vue')['default']
     CustomizeForm: typeof import('./src/components/customize/CustomizeForm.vue')['default']
     CustomizePage: typeof import('./src/components/customize/CustomizePage.vue')['default']
