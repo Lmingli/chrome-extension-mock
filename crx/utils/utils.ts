@@ -57,12 +57,15 @@ export const getSaveRequestBody = (request: Request): object => {
   return requestBody;
 };
 
-export const filterRequestParams = (filter: string[], params: object): string => {
+export const filterRequestParams = ({ filter, params }: { filter: string[]; params: object; }): object => {
+  if (!filter || filter.length === 0) {
+    return params;
+  }
   let obj = { ...params };
   for (const n of filter) {
     delete obj[n];
   }
-  return JSON.stringify(obj);
+  return obj;
 };
 
 /** 获取MOCK时请求体 */
@@ -83,3 +86,19 @@ export const getMockRequestBody = (body: chrome.webRequest.WebRequestBody): obje
   }
   return requestBody;
 };
+
+export const commonCheckMatch = ({ setting, n, requestParams, requestBody, storageItem }: any): boolean => {
+  if (storageItem.checkParams ?? setting.checkParams) {
+    if (n.requestParams !== requestParams) {
+      return false;
+    }
+  }
+
+  if (storageItem.checkBody ?? setting.checkBody ) {
+    if (n.requestBody !== requestBody) {
+      return false;
+    }
+  }
+
+  return true;
+}

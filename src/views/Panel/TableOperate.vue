@@ -125,9 +125,11 @@ const handleClose = (done: () => void) => {
   done();
 }
 const handleSubmit = async(form: any) => {
+  console.log(storageItem, form)
+  // return;
   await storage.set({
     [url.value]: {
-      ...storageItem.value,
+      ...toRaw(storageItem.value),
       ...form,
     },
   });

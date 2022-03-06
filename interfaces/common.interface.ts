@@ -28,7 +28,7 @@ interface StorageItemDataI {
   name: string;
   timestamp: number;
   active: boolean;
-  location?: string;
+  locationUrl?: string;
   [prop: string]: any;
 }
 

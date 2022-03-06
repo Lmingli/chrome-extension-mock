@@ -5,10 +5,10 @@
     </el-header>
 
     <el-main>
-      <PanelOperate @setStorage="setStorage" v-model:searchString="searchString" />
+      <PanelOperate @setStorage="setStorage" v-model:searchString="searchString" v-model:filterLocationUrl="filterLocationUrl" />
 
       <customize-table
-        :data="tableData.filter(n => n.url.includes(searchString))"
+        :data="filterTableData"
         :column="tableColumn"
         style="margin-top: 10px;"
         :expand-row-keys="expandRowKeys"
@@ -24,7 +24,7 @@
 
               <customize-table
                 v-if="(row.storageItem.data instanceof Array)"
-                :data="row.storageItem.data"
+                :data="row.storageItem.data.filter((n: any) => !filterLocationUrl || n.locationUrl === currentLocationUrl)"
                 :column="expandColumn"
                 :show-header="false"
                 class="table-inside"
@@ -82,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, toRaw, shallowRef, defineAsyncComponent, reactive } from 'vue';
+import { onMounted, ref, toRaw, shallowRef, defineAsyncComponent, reactive, computed } from 'vue';
 import { storage } from '@/utils/Chrome';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { DefaultSetting } from '~/crx/DefaultSetting';
@@ -100,8 +100,28 @@ interface Column {
 
 const storageSetting = ref<StorageSetting>(DefaultSetting());
 const searchString = ref('');
+const filterLocationUrl = ref(false);
+const currentLocationUrl = ref('');
+try {
+  chrome.runtime.onMessage.addListener((msg, sender, sendResponse): void => {
+    if (!!msg.locationUrl) {
+      currentLocationUrl.value = msg.locationUrl;
+    }
+  })
+} catch (error) {}
 
 const tableData = shallowRef<Column[]>([]);
+const filterTableData = computed(() => {
+  let data = tableData.value;
+  if (!!searchString.value) {
+    data = data.filter(n => n.url.includes(searchString.value) || n.storageItem?.name?.includes(searchString.value));
+  }
+  if (filterLocationUrl.value) {
+    data = data.filter(n => n.storageItem.data.some((x) => x.locationUrl = currentLocationUrl.value));
+  }
+  return data;
+});
+
 const tableColumn = [
   { slot: 'expand' },
   { slot: 'url' },

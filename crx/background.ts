@@ -1,4 +1,4 @@
-import { getRequestUrlPrams, getSaveRequestBody, filterRequestParams, getMockRequestBody } from './utils/utils';
+import { getRequestUrlPrams, getSaveRequestBody, filterRequestParams, getMockRequestBody, commonCheckMatch } from './utils/utils';
 // import { DefaultSetting } from './DefaultSetting';
 import { StorageAll, StorageSetting, StorageItem, StorageItemData } from '../interfaces/common.interface';
 import { Request } from '../interfaces/network.interface';
@@ -70,20 +70,49 @@ chrome.webRequest.onBeforeRequest.addListener(
         return;
       }
     }
-
-    const requestBodyAll = getMockRequestBody(details.requestBody); // 获取请求体所有参数
-    const requestBody = filterRequestParams(storage.setting.removeRequestBodyParams, requestBodyAll); // 过滤后请求体参数
-
+    
+  
     const storageKey = url.split('?')[0]; // 请求的url地址，storage中的key
 
+
+    const requestParamsAll = getRequestUrlPrams(url); // 获取所有url中参数
+    const requestParamsObj = filterRequestParams({
+      params: requestParamsAll,
+      filter: [
+        ...storage.setting.removeRequestUrlParams,
+        ...(storage[storageKey].removeRequestUrlParams ?? []),
+      ], 
+    }); 
+    const requestParams = JSON.stringify(requestParamsObj); // 过滤后的url参数
+
+    const requestBodyAll = getMockRequestBody(details.requestBody); // 获取请求体所有参数
+    const requestBodyObj = filterRequestParams({
+      params: requestBodyAll,
+      filter: [
+        ...storage.setting.removeRequestBodyParams,
+        ...(storage[storageKey].removeRequestBodyParams ?? []),
+      ],
+    });
+    const requestBody = JSON.stringify(requestBodyObj); // 过滤后请求体参数
+
+
     const response = (storage[storageKey]?.data ?? [])?.find((n) => {
-      if (storage.setting.checkParams && n.requestParams !== JSON.stringify(getRequestUrlPrams(url))) {
+      if (!n.active) {
         return false;
       }
-      if (storage.setting.checkBody && n.requestBody !== requestBody) {
+     
+      const commonCheckResult = commonCheckMatch({
+        setting: storage.setting,
+        n,
+        requestParams,
+        requestBody,
+        storageItem: storage[storageKey],
+      });
+      if (!commonCheckResult) {
         return false;
       }
-      return n.active;
+
+      return true;
     })?.response;
     console.log(response);
 
@@ -102,6 +131,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse): void => {
   /* 获取当前页面URL */
   if (!!msg.locationUrl) {
     locationUrl = msg.locationUrl;
+    console.log(locationUrl)
   }
 
   /* 
@@ -146,33 +176,58 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse): void => {
       return;
     }
 
-    const requestParamsAll = getRequestUrlPrams(request.url); // 获取所有url中参数
-    const requestParams = filterRequestParams(storage.setting.removeRequestUrlParams, requestParamsAll); // 过滤后的url参数
-
-    const requestBodyAll = getSaveRequestBody(request); // 获取请求体所有参数
-    const requestBody = filterRequestParams(storage.setting.removeRequestBodyParams, requestBodyAll); // 过滤后请求体参数
-
-    console.log('SAVE-----过滤后的参数', requestParams, requestBody);
 
     const storageKey = request.url.split('?')[0]; // 请求的url地址，storage中的key
 
+
+    const requestParamsAll = getRequestUrlPrams(request.url); // 获取所有url中参数
+    const requestParamsObj = filterRequestParams({
+      params: requestParamsAll,
+      filter: [
+        ...storage.setting.removeRequestUrlParams,
+        ...(storage[storageKey].removeRequestUrlParams ?? []),
+      ], 
+    }); 
+    const requestParams = JSON.stringify(requestParamsObj); // 过滤后的url参数
+
+    const requestBodyAll = getSaveRequestBody(request); // 获取请求体所有参数
+    const requestBodyObj = filterRequestParams({
+      params: requestBodyAll,
+      filter: [
+        ...storage.setting.removeRequestBodyParams,
+        ...(storage[storageKey].removeRequestBodyParams ?? []),
+      ],
+    });
+    const requestBody = JSON.stringify(requestBodyObj); // 过滤后请求体参数
+
+    console.log('SAVE-----过滤后的参数', requestParams, requestBody);
+
+
     // 检查重复
     const responseRepeat = storage[storageKey]?.data?.find?.((n) => {
-      if (n.method !== request.method) {
-        return false;
-      }
-      if (n.response !== response) {
-        return false;
-      }
       if (n.locationUrl !== locationUrl) {
         return false;
       }
-      if (storage.setting.checkParams && n.requestParams !== requestParams) {
+
+      if (n.method !== request.method) {
         return false;
       }
-      if (storage.setting.checkBody && n.requestBody !== requestBody) {
+
+      const commonCheckResult = commonCheckMatch({
+        setting: storage.setting,
+        n,
+        requestParams,
+        requestBody,
+        storageItem: storage[storageKey],
+      });
+      if (!commonCheckResult) {
         return false;
       }
+
+      if (n.response !== response) {
+        return false;
+      }
+      
       return true;
     });
     if (responseRepeat) {

@@ -27,6 +27,14 @@
         </template>
       </el-popconfirm>
     </div>-->
+
+    <div style="margin-bottom: 30px;">
+      <el-button type="primary" style="margin-left: 20px" @click="handleDownload">保存配置文件</el-button>
+      <el-upload action="" :show-file-list="false" accept=".json" :before-upload="handleUpload" style="display: inline-block;margin-left: 20px;">
+        <el-button type="primary">上传配置文件</el-button>
+      </el-upload>
+    </div>
+
     <customize-form
       :form="setting"
       v-model:loading="loading.settingMore"
@@ -62,7 +70,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref, defineAsyncComponent } from 'vue';
 import { storage } from '@/utils/Chrome';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { DefaultSetting } from '~/crx/DefaultSetting';
 import { StorageSetting } from '~/interfaces/common.interface';
 const ResponseTextDialog = defineAsyncComponent(() => import('@/components/ResponseTextDialog.vue'));
@@ -170,6 +178,42 @@ const handleTextDialogChange = async (text: string) => {
 //   await storage.download();
 //   ElMessage.success('下载成功');
 // }
+
+const handleDownload = async() => {
+  await ElMessageBox.confirm('是否确定下载配置文件至本地', '提示');
+  chrome?.runtime?.sendMessage({
+    download: true,
+  });
+}
+const handleUpload: any = (file: File) => {
+  const reader = new FileReader();  
+  reader.onload = async(event: any) => {  
+    try {
+      const obj = JSON.parse(event.target.result);
+      try {
+        console.log(obj);
+        await ElMessageBox.confirm('是否确定覆盖当前配置文件？', '提示');
+        console.log(storage.set)
+        await storage.set(obj);
+        ElMessage.success('上传成功');
+      } catch (error) {}
+    } catch (error) {
+      ElMessage.error('上传失败');
+    }
+  }  
+  reader.readAsText(file);  
+  return false;
+}
+
+onMounted(() => {
+  chrome?.runtime?.onMessage?.addListener((msg, sender, sendResponse) => {
+    if (msg.downloadSuccess) {
+      ElMessage.success('下载成功');
+    }
+  })
+})
+
+
 </script>
 
 <style lang="scss">

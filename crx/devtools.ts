@@ -6,7 +6,7 @@ chrome.devtools.network.onRequestFinished.addListener((data) => {
       chrome.tabs.query({ currentWindow: true, active: true }, (tabs) => {
         if (tabs[0] != undefined) {
           chrome?.runtime?.sendMessage({
-            locationUrl: tabs[0].url,
+            locationUrl: (tabs[0].url ?? '').split('?')[0],
           });
         }
       });
