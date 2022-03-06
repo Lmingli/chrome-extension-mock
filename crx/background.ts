@@ -3,7 +3,7 @@ import { getRequestUrlPrams, getSaveRequestBody, filterRequestParams, getMockReq
 import { StorageAll, StorageSetting, StorageItem, StorageItemData } from '../interfaces/common.interface';
 import { Request } from '../interfaces/network.interface';
 
-// chrome.storage.local.get(n => {console.log(n)})
+// var a;chrome.storage.local.get(n => {a=n;console.log(a)})
 
 let storage: StorageAll = {};
 chrome.storage.local.get((res) => {
@@ -179,7 +179,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse): void => {
 
     // 检查是否匹配配置项filterUrl
     for (const n of storage.setting.filterUrl) {
-      if (request.url.includes(n)) {
+      if (new RegExp(n).test(request.url)) {
         console.log('SAVE-----命中filterUrl');
         return;
       }

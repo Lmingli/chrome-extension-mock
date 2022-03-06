@@ -1,7 +1,7 @@
 <template>
   <el-button v-if="showUncheck()" type="warning" @click="handleUnchek">取消已选择</el-button>
-  <el-button type="success" @click="drawer = true;">设置</el-button>
   <el-button type="primary" @click="handleAdd">新增</el-button>
+  <el-button type="success" @click="drawer = true;">设置</el-button>
   <el-popconfirm title="是否确定删除？" @confirm="handleDelete">
     <template #reference>
       <el-button type="danger">删除</el-button>
@@ -10,6 +10,12 @@
 
 
   <el-drawer v-model="drawer" :before-close="handleClose" append-to-body custom-class="item-drawer-setting">
+    <el-popconfirm title="是否确定忽略该链接的请求并删除？" @confirm="handleIgnoreDelete" >
+      <template #reference>
+        <el-button type="danger" style="margin: 15px 30px;">忽略该链接请求并删除</el-button>
+      </template>
+    </el-popconfirm>
+
     <customize-form
       :form="setting"
       @submit="handleSubmit"
@@ -160,6 +166,19 @@ const handleSubmit = async(form: any) => {
   });
   ElMessage.success('设置成功');
   drawer.value = false;
+}
+
+const handleIgnoreDelete = async() => {
+  try {
+    let setting: any = await storage.get('setting');
+    setting.setting.filterUrl.push(url.value);
+    await storage.set({
+      setting: setting.setting,
+    });
+    handleDelete();
+  } catch (error) {
+    ElMessage.error('操作失败');
+  }
 }
 
 </script>

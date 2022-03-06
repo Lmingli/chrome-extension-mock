@@ -8,7 +8,7 @@ if (MODE === 'development') {
 
 
 export const storage = {
-  get: (params = null): Promise<StorageAll> => new Promise((resolve) => {
+  get: (params: any = null): Promise<StorageAll> => new Promise((resolve) => {
     chrome.storage.local.get(params, (res) => {
       resolve(res ?? {});
     })
