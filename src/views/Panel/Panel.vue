@@ -4,7 +4,7 @@
       <Setting></Setting>
     </el-header>
 
-    <el-main>
+    <el-main style="padding: 10px;">
       <PanelOperate @setStorage="setStorage" v-model:searchString="searchString" v-model:filterLocationUrl="filterLocationUrl" />
 
       <customize-table
@@ -24,12 +24,12 @@
 
               <customize-table
                 v-if="(row.storageItem.data instanceof Array)"
-                :data="row.storageItem.data.filter((n: any) => !filterLocationUrl || n.locationUrl === currentLocationUrl)"
+                :data="row.storageItem.data.filter((n: any) => n?.response?.indexOf(row.columnFilter) > -1).filter((n: any) => !filterLocationUrl || n.locationUrl === currentLocationUrl)"
                 :column="expandColumn"
                 :show-header="false"
                 class="table-inside"
                 @row-click="(a: any, b: any) => handleExpandRowClick(a, b, row)"
-                max-height="300px"
+                max-height="320px"
               >
                 <template #before>
                   <el-table-column align="center" width="90px">
@@ -69,9 +69,16 @@
         </template>
 
         <template #after>
-          <el-table-column label="操作" align="center" prop="operate" width="400px">
+          <el-table-column label="操作" align="center" prop="operate" width="330px">
             <template #default="{ row }">
-              <TableOperate :url="row.url" :storageItem="row.storageItem" :tableData="tableData" :storageSetting="storageSetting" @add="handleAdd" />
+              <TableColumnOperate
+                :url="row.url"
+                :storageItem="row.storageItem"
+                :tableData="tableData"
+                :storageSetting="storageSetting"
+                @add="handleAdd"
+                v-model:columnFilter="row.columnFilter"
+              />
             </template>
           </el-table-column>
         </template>
@@ -104,7 +111,7 @@ import { Sunny } from '@element-plus/icons-vue';
 import { DefaultSetting } from '~/crx/DefaultSetting';
 import { StorageItem, StorageItemData, StorageSetting } from '~/interfaces/common.interface';
 import PanelOperate from './PanelOperate.vue';
-import TableOperate from './TableOperate.vue';
+import TableColumnOperate from './TableColumnOperate.vue';
 const ResponseTextDialog = defineAsyncComponent(() => import('@/components/ResponseTextDialog.vue'));
 const CodeMirrorDialog = defineAsyncComponent(() => import('@/components/CodeMirrorDialog.vue'));
 
@@ -113,6 +120,7 @@ interface Column {
   storageItem: StorageItem;
   count: number | string;
   size: number;
+  columnFilter: string;
 }
 
 const storageSetting = ref<StorageSetting>(DefaultSetting());
@@ -171,6 +179,7 @@ const setStorage = async() => {
         storageItem: storageItem,
         count: storageItem?.data instanceof Array ? storageItem.data.length : JSON.stringify(storageItem),
         size: JSON.stringify(storageItem).length,
+        columnFilter: '',
       });
     }
     tmp = tmp.sort((a,b) => {

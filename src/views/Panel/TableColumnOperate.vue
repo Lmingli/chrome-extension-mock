@@ -1,20 +1,24 @@
 <template>
-  <el-button v-if="showUncheck()" type="warning" @click="handleUnchek">取消已选择</el-button>
-  <el-button type="primary" @click="handleAdd">新增</el-button>
-  <el-button type="success" @click="drawer = true;">设置</el-button>
-  <el-popconfirm title="是否确定删除？" @confirm="handleDelete">
-    <template #reference>
-      <el-button type="danger">删除</el-button>
-    </template>
-  </el-popconfirm>
+  <div class="inline-operate">
+    <el-button v-if="showUncheck()" type="warning" @click="handleUnchek">取消已选择</el-button>
+    <el-input :model-value="columnFilter" @input="emits('update:columnFilter', $event)" placeholder="过滤response"></el-input>
+    <el-button type="primary" @click="drawer = true;">设置</el-button>
+  </div>
 
-
-  <el-drawer v-model="drawer" :before-close="handleClose" append-to-body custom-class="item-drawer-setting">
-    <el-popconfirm title="是否确定忽略该链接的请求并删除？" @confirm="handleIgnoreDelete" >
-      <template #reference>
-        <el-button type="danger" style="margin: 15px 30px;">忽略该链接请求并删除</el-button>
-      </template>
-    </el-popconfirm>
+  <el-drawer v-model="drawer" :before-close="handleClose" append-to-body custom-class="panel-table-column-drawer-setting">
+    <div class="buttons">
+      <el-button type="primary" size="large" @click="handleAdd">新增</el-button>
+      <el-popconfirm title="是否确定删除？" @confirm="handleDelete">
+        <template #reference>
+          <el-button type="danger" size="large">删除</el-button>
+        </template>
+      </el-popconfirm>
+      <el-popconfirm title="是否确定忽略该链接的请求并删除？" @confirm="handleIgnoreDelete" >
+        <template #reference>
+          <el-button type="danger" size="large">忽略该链接请求并删除</el-button>
+        </template>
+      </el-popconfirm>
+    </div>
 
     <customize-form
       :form="setting"
@@ -36,7 +40,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref, toRaw, toRefs } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { storage } from '@/utils/Chrome';
 import { StorageItem, StorageItemData, StorageSetting } from '~/interfaces/common.interface';
 
@@ -52,9 +56,11 @@ const props = defineProps<{
   storageItem: StorageItem;
   tableData: Column[];
   storageSetting: StorageSetting;
+  columnFilter: string;
 }>();
 const emits = defineEmits<{
   (e: 'add', url: string): void;
+  (e: 'update:columnFilter', value: string): void;
 }>();
 
 const { url, storageItem, tableData, storageSetting } = toRefs(props);
@@ -95,12 +101,14 @@ const handleAdd = async() => {
     timestamp: Date.now(),
   })
   emits('add', url.value);
+  drawer.value = false;
 }
 
 const handleDelete = async () => {
   await storage.remove(url.value);
   ElMessage.success('删除成功');
   tableData.value.splice(tableData.value.findIndex(n => n.url === url.value), 1);
+  drawer.value = false;
 }
 
 
@@ -146,6 +154,10 @@ const handleClose = (done: () => void) => {
 const handleSubmit = async(form: any) => {
   console.log(storageItem, form)
   if (form.compare) {
+    if (!(storageSetting.value.openMock && storageSetting.value.openSave)) {
+      await ElMessage.info('需同时开启MOCK和保存请求后，下次请求对比才会生效');
+    }
+
     const cur: any = tableData.value.find(n => n.storageItem.compare);
     if (cur) {
       await storage.set({
@@ -184,12 +196,29 @@ const handleIgnoreDelete = async() => {
 </script>
 
 <style lang="scss">
-.item-drawer-setting {
+.panel-table-column-drawer-setting {
   width: 80% !important;
   max-width: 700px;
   z-index: 99;
   .el-input {
     width: 100% !important;
+  }
+}
+</style>
+<style lang="scss" scoped>
+.inline-operate {
+  text-align: right;
+  & > :not(first-child) {
+    margin-left: 8px;
+  }
+  .el-input {
+    width: 120px;
+  }
+}
+.buttons {
+  margin-bottom: 20px;
+  .el-button {
+    margin-left: 20px;
   }
 }
 </style>

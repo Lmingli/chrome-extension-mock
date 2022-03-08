@@ -1,5 +1,5 @@
 <template>
-  <div style="padding-top: 14px;">
+  <div style="padding-top: 6px;">
     <customize-form
       :form="setting"
       v-model:loading="loading.setting"
@@ -7,6 +7,7 @@
       :setting="settingConf"
       inline
       :showResetButton="false"
+      class="form"
     >
       <template #button>
         <el-button type="success" @click="drawer = true;">更多设置</el-button>
@@ -29,11 +30,13 @@
     </div>-->
 
     <div style="margin-bottom: 30px;">
-      <el-button type="primary" style="margin-left: 20px" @click="handleDownload">保存配置文件</el-button>
+      <el-button type="primary" size="large" style="margin-left: 20px" @click="handleDownload">保存配置文件</el-button>
       <el-upload action="" :show-file-list="false" accept=".json" :before-upload="handleUpload" style="display: inline-block;margin-left: 20px;">
-        <el-button type="primary">上传配置文件</el-button>
+        <el-button type="primary" size="large">上传配置文件</el-button>
       </el-upload>
     </div>
+
+    <el-divider></el-divider>
 
     <customize-form
       :form="setting"
@@ -216,6 +219,13 @@ onMounted(() => {
 
 </script>
 
+<style lang="scss" scoped>
+.form {
+  :deep(.el-form-item) {
+    margin-bottom: 8px;
+  }
+}
+</style>
 <style lang="scss">
 .drawer-setting-more {
   width: 90% !important;
