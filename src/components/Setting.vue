@@ -1,6 +1,6 @@
 <template>
   <div style="padding-top: 6px;">
-    <customize-form
+    <CustomizeForm
       :form="setting"
       v-model:loading="loading.setting"
       @submit="handleSubmit"
@@ -12,7 +12,7 @@
       <template #button>
         <el-button type="success" @click="drawer = true;">更多设置</el-button>
       </template>
-    </customize-form>
+    </CustomizeForm>
   </div>
 
   <el-drawer v-model="drawer" :before-close="handleClose" custom-class="drawer-setting-more">
@@ -38,7 +38,7 @@
 
     <el-divider></el-divider>
 
-    <customize-form
+    <CustomizeForm
       :form="setting"
       v-model:loading="loading.settingMore"
       @submit="handleSubmitMore"
@@ -58,7 +58,7 @@
       <template #filterUrl="{ form }">
         <EditableList v-model="form.filterUrl"></EditableList>
       </template>
-    </customize-form>
+    </CustomizeForm>
     <div @click="dialogVisible = true;">{{ setting }}</div>
   </el-drawer>
 

@@ -7,7 +7,7 @@
     <el-main style="padding: 10px;">
       <PanelOperate @setStorage="setStorage" v-model:searchString="searchString" v-model:filterLocationUrl="filterLocationUrl" />
 
-      <customize-table
+      <CustomizeTable
         :data="filterTableData"
         :column="tableColumn"
         style="margin-top: 10px;"
@@ -22,7 +22,7 @@
           <el-table-column type="expand" align="center">
             <template #default="{ row }">
 
-              <customize-table
+              <CustomizeTable
                 v-if="(row.storageItem.data instanceof Array)"
                 :data="row.storageItem.data.filter((n: any) => n?.response?.indexOf(row.columnFilter) > -1).filter((n: any) => !filterLocationUrl || n.locationUrl === currentLocationUrl)"
                 :column="expandColumn"
@@ -52,7 +52,7 @@
                     </template>
                   </el-table-column>
                 </template>
-              </customize-table>
+              </CustomizeTable>
 
             </template>
           </el-table-column>
@@ -82,7 +82,7 @@
             </template>
           </el-table-column>
         </template>
-      </customize-table>
+      </CustomizeTable>
     </el-main>
   </el-container>
 

@@ -7,7 +7,7 @@
     </div>
 
     <div>仅可选择已设置名称的数据</div>
-    <customize-table :data="tableData" :column="tableColumn" style="margin-top: 10px;">
+    <CustomizeTable :data="tableData" :column="tableColumn" style="margin-top: 10px;">
       <template #select>
         <el-table-column>
           <template #default="{ row }">
@@ -28,7 +28,7 @@
           </template>
         </el-table-column>
       </template>
-    </customize-table>
+    </CustomizeTable>
   </div>
 </template>
 

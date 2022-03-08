@@ -20,7 +20,7 @@
       </el-popconfirm>
     </div>
 
-    <customize-form
+    <CustomizeForm
       :form="setting"
       @submit="handleSubmit"
       :setting="settingConf"
@@ -33,7 +33,7 @@
       <template #removeRequestBodyParams="{ form }">
         <EditableList v-model="form.removeRequestBodyParams"></EditableList>
       </template>
-    </customize-form>
+    </CustomizeForm>
   </el-drawer>
 
 </template>
