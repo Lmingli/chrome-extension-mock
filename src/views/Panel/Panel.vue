@@ -104,7 +104,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, toRaw, shallowRef, defineAsyncComponent, reactive, computed } from 'vue';
+import { onMounted, ref, toRaw, shallowRef, defineAsyncComponent, reactive, computed, defineComponent } from 'vue';
 import { storage } from '@/utils/Chrome';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Sunny } from '@element-plus/icons-vue';
@@ -114,6 +114,7 @@ import PanelOperate from './PanelOperate.vue';
 import TableColumnOperate from './TableColumnOperate.vue';
 const ResponseTextDialog = defineAsyncComponent(() => import('@/components/ResponseTextDialog.vue'));
 const CodeMirrorDialog = defineAsyncComponent(() => import('@/components/CodeMirrorDialog.vue'));
+
 
 interface Column {
   url: string;

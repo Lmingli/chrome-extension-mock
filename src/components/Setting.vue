@@ -123,7 +123,7 @@ const loading = reactive({
 
 
 const drawer = ref(false);
-const handleClose = (done: () => void) => {
+const handleClose = (done: any) => {
   done();
 }
 

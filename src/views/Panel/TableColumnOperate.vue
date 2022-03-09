@@ -148,7 +148,7 @@ const settingConf = [
   { type: 'slotIn', slot: 'removeRequestUrlParams', label: '忽略请求链接参数' },
   { type: 'slotIn', slot: 'removeRequestBodyParams', label: '忽略请求体参数' },
 ];
-const handleClose = (done: () => void) => {
+const handleClose = (done: any) => {
   done();
 }
 const handleSubmit = async(form: any) => {
