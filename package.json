@@ -5,7 +5,7 @@
     "serve": "vite",
     "crx": "pnpm run serve:crx",
     "serve:crx": "vue-tsc --noEmit && vite build --watch --mode crx",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "rimraf chrome-extensions-mock && vue-tsc --noEmit && vite build",
     "build:watch": "vue-tsc --noEmit && vite build --watch",
     "preview": "vite preview"
   },
@@ -29,6 +29,7 @@
     "@vue/shared": "^3.2.31",
     "element-plus": "^2.0.4",
     "qs": "^6.10.3",
+    "rimraf": "^3.0.2",
     "rollup-plugin-copy": "^3.4.0",
     "sass": "^1.46.0",
     "typescript": "^4.6.2",
