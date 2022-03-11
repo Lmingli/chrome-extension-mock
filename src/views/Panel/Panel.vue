@@ -24,7 +24,7 @@
 
               <CustomizeTable
                 v-if="(row.storageItem.data instanceof Array)"
-                :data="row.storageItem.data.filter((n: any) => n?.response?.indexOf(row.columnFilter) > -1).filter((n: any) => !filterLocationUrl || n.locationUrl === currentLocationUrl)"
+                :data="row.storageItem.data.filter((n: any) => !row.storageItem.columnFilter || n?.response?.indexOf(row.storageItem.columnFilter) > -1).filter((n: any) => !filterLocationUrl || n.locationUrl === currentLocationUrl)"
                 :column="expandColumn"
                 :show-header="false"
                 class="table-inside"
@@ -77,7 +77,6 @@
                 :tableData="tableData"
                 :storageSetting="storageSetting"
                 @add="handleAdd"
-                v-model:columnFilter="row.columnFilter"
               />
             </template>
           </el-table-column>
@@ -106,7 +105,7 @@
 <script setup lang="ts">
 import { onMounted, ref, toRaw, shallowRef, defineAsyncComponent, reactive, computed, defineComponent } from 'vue';
 import { storage } from '@/utils/Chrome';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ElMessage } from 'element-plus';
 import { Sunny } from '@element-plus/icons-vue';
 import { DefaultSetting } from '~/crx/DefaultSetting';
 import { StorageItem, StorageItemData, StorageSetting } from '~/interfaces/common.interface';
@@ -121,7 +120,6 @@ interface Column {
   storageItem: StorageItem;
   count: number | string;
   size: number;
-  columnFilter: string;
 }
 
 const storageSetting = ref<StorageSetting>(DefaultSetting());
@@ -180,7 +178,6 @@ const setStorage = async() => {
         storageItem: storageItem,
         count: storageItem?.data instanceof Array ? storageItem.data.length : JSON.stringify(storageItem),
         size: JSON.stringify(storageItem).length,
-        columnFilter: '',
       });
     }
     tmp = tmp.sort((a,b) => {
@@ -366,9 +363,18 @@ const handleCodeMirrorSave = async(str: string) => {
     }
   }
 }
+
+
 chrome?.runtime?.onMessage?.addListener((msg): void => {
   if (!!msg.info) {
-    ElMessage.info(msg.info);
+    ElMessage({
+      type: 'info',
+      message: msg.info,
+      showClose: true,
+      grouping: true,
+      duration: 1200,
+      customClass: 'message-info-right-offset'
+    })
   }
 
   if (!!msg.compareMockData) {
@@ -387,6 +393,16 @@ chrome?.runtime?.onMessage?.addListener((msg): void => {
 })
 
 </script>
+
+<style lang="scss">
+.message-info-right-offset {
+  top: 44px !important;
+  left: auto;
+  right: 10px;
+  transform: translateX(0);
+  min-width: auto;
+}
+</style>
 
 <style lang='scss' scoped>
 .table-inside {

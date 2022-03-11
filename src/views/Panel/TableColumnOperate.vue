@@ -1,7 +1,19 @@
 <template>
   <div class="inline-operate">
     <el-button v-if="showUncheck()" type="warning" @click="handleUnchek">取消已选择</el-button>
-    <el-input :model-value="columnFilter" @input="emits('update:columnFilter', $event)" placeholder="过滤response"></el-input>
+    <el-input
+      :model-value="columnFilter"
+      @input="columnFilter = $event"
+      @keyup.enter="handleColumnFilter"
+      clearable
+      @clear="columnFilter = '';handleColumnFilter()"
+      placeholder="过滤response"
+      class="column-filter-input"
+    >
+      <template #append>
+        <el-button :icon="Search" @click="handleColumnFilter"></el-button>
+      </template>
+    </el-input>
     <el-button type="primary" @click="drawer = true;">设置</el-button>
   </div>
 
@@ -41,6 +53,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref, toRaw, toRefs } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { Search } from '@element-plus/icons-vue';
 import { storage } from '@/utils/Chrome';
 import { StorageItem, StorageItemData, StorageSetting } from '~/interfaces/common.interface';
 
@@ -56,7 +69,6 @@ const props = defineProps<{
   storageItem: StorageItem;
   tableData: Column[];
   storageSetting: StorageSetting;
-  columnFilter: string;
 }>();
 const emits = defineEmits<{
   (e: 'add', url: string): void;
@@ -65,6 +77,7 @@ const emits = defineEmits<{
 
 const { url, storageItem, tableData, storageSetting } = toRefs(props);
 
+const columnFilter = ref(storageItem.value.columnFilter);
 
 const showUncheck = () => storageItem.value.data.findIndex(n => n.active === true) > -1;
 
@@ -73,6 +86,14 @@ const handleUnchek = async() => {
   if (cur) {
     cur.active = false;
   }
+  await storage.set({
+    [url.value]: toRaw(storageItem.value),
+  });
+}
+
+const handleColumnFilter = async() => {
+  console.log(columnFilter.value)
+  storageItem.value.columnFilter = columnFilter.value;
   await storage.set({
     [url.value]: toRaw(storageItem.value),
   });
@@ -219,6 +240,15 @@ const handleIgnoreDelete = async() => {
   margin-bottom: 20px;
   .el-button {
     margin-left: 20px;
+  }
+}
+.column-filter-input {
+  :deep(.el-input__inner) {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+  :deep(.el-input-group__append) {
+    padding: 0 10px;
   }
 }
 </style>

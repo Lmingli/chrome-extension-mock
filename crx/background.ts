@@ -133,7 +133,7 @@ chrome.webRequest.onBeforeRequest.addListener(
       console.log('MOCK-----已拦截该请求');
 
       chrome?.runtime?.sendMessage({
-        info: 'MOCK-----已MOCK该请求',
+        info: '已MOCK该请求',
       });
 
       return {
@@ -292,7 +292,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse): void => {
 
     console.log('SAVE-----已保存该请求');
     chrome?.runtime?.sendMessage({
-      info: 'SAVE-----已保存该请求',
+      info: '已保存该请求',
     });
 
     chrome.storage.local.set({

@@ -40,5 +40,6 @@ export interface StorageItem extends CommonSettingItem {
   top?: boolean;
   name?: string;
   compare?: boolean;
+  columnFilter?: string;
   [prop: string]: any;
 }
