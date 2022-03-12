@@ -8,7 +8,9 @@ import Components from 'unplugin-vue-components/vite';
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
 
 // https://vitejs.dev/config/
-export default ({ mode }) => defineConfig({
+export default ({ mode }) => {
+  const chromeExtensionsName = mode === 'test' ? 'test' : 'chrome-extensions-mock';
+  return defineConfig({
     base: './',
     server: {
       host: true,
@@ -31,7 +33,7 @@ export default ({ mode }) => defineConfig({
           chunkFileNames: 'assets/[name].[hash].js',
           assetFileNames: 'assets/[name].[hash].[ext]',
           entryFileNames: '[name].js',
-          dir: 'chrome-extensions-mock',
+          dir: chromeExtensionsName,
         },
       },
     },
@@ -51,13 +53,14 @@ export default ({ mode }) => defineConfig({
       }),
       copy({
         targets: [
-          { src: 'crx/manifest.json', dest: 'chrome-extensions-mock' },
-          { src: 'README.md', dest: 'chrome-extensions-mock' },
-          { src: 'crx/devtools.html', dest: 'chrome-extensions-mock' },
-          { src: 'crx/assets', dest: 'chrome-extensions-mock' },
+          { src: 'crx/manifest.json', dest: chromeExtensionsName },
+          { src: 'README.md', dest: chromeExtensionsName },
+          { src: 'crx/devtools.html', dest: chromeExtensionsName },
+          { src: 'crx/assets', dest: chromeExtensionsName },
         ],
         hook: 'writeBundle',
       }),
       // legacy(),
     ],
   });
+}
