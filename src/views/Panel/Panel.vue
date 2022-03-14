@@ -364,6 +364,18 @@ const handleCodeMirrorSave = async(str: string) => {
   }
 }
 
+const showDialogCodeMirror = () => {
+  dialogCodeMirrorVisible.value = true;
+  const cur: any = tableData.value.find(n => n.storageItem.compare);
+  if (cur) {
+    storage.set({
+      [cur.url]: {
+        ...cur.storageItem,
+        compare: false,
+      },
+    })
+  }
+}
 
 chrome?.runtime?.onMessage?.addListener((msg): void => {
   if (!!msg.info) {
@@ -380,14 +392,14 @@ chrome?.runtime?.onMessage?.addListener((msg): void => {
   if (!!msg.compareMockData) {
     compareMockData.value = msg.compareMockData;
     if (!!compareRealData.value) {
-      dialogCodeMirrorVisible.value = true;
+      showDialogCodeMirror();
     }
   }
 
   if (!!msg.compareRealData) {
     compareRealData.value = msg.compareRealData;
     if (!!compareMockData.value) {
-      dialogCodeMirrorVisible.value = true;
+      showDialogCodeMirror();
     }
   }
 })
