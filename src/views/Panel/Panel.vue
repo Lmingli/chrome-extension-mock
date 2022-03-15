@@ -24,7 +24,7 @@
 
               <CustomizeTable
                 v-if="(row.storageItem.data instanceof Array)"
-                :data="row.storageItem.data.filter((n: any) => !row.storageItem.columnFilter || n?.response?.indexOf(row.storageItem.columnFilter) > -1).filter((n: any) => !filterLocationUrl || n.locationUrl === currentLocationUrl)"
+                :data="expandTableData(row)"
                 :column="expandColumn"
                 :show-header="false"
                 class="table-inside"
@@ -120,6 +120,7 @@ interface Column {
   storageItem: StorageItem;
   count: number | string;
   size: number;
+  filterCount?: number;
 }
 
 const storageSetting = ref<StorageSetting>(DefaultSetting());
@@ -140,17 +141,24 @@ const filterTableData = computed(() => {
   if (!!searchString.value) {
     data = data.filter(n => n.url.includes(searchString.value) || n.storageItem?.name?.includes(searchString.value));
   }
-  if (filterLocationUrl.value) {
-    data = data.filter(n => n.storageItem.data.some((x) => x.locationUrl = currentLocationUrl.value));
+  if (filterLocationUrl.value && !!currentLocationUrl.value) {
+    data = data.filter(n => n.storageItem.data.some((x) => x.locationUrl === currentLocationUrl.value));
   }
   return data;
 });
+const expandTableData = (row: Column) => {
+  const data = row.storageItem.data
+                .filter((n: any) => !row.storageItem.columnFilter || n?.response?.indexOf(row.storageItem.columnFilter) > -1)
+                .filter((n: any) => !filterLocationUrl.value || n.locationUrl === currentLocationUrl.value);
+  row.filterCount = data.length;
+  return data;
+};
 
 const tableColumn = [
   { slot: 'expand' },
   { slot: 'url' },
-  { label: 'count', prop: 'count' },
-  { label: 'size', prop: 'size' },
+  { label: 'count', prop: 'count', formatter: (row: Column) => row.filterCount !== undefined ? `${row.filterCount}/${row.count}` : row.count },
+  { label: 'size', prop: 'size'},
 ];
 const tableUrlFormatter = (cellValue: string) => {
   let value = cellValue;
