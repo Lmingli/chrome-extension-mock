@@ -1,12 +1,12 @@
 {
   "manifest_version": 2,
-  "name": "mock",
+  "name": "MOCK-PLUS",
   "version": "1.0.0",
-  "description": "mock",
+  "description": "MOCK-PLUS",
   "icons": {
-    "16": "assets/yaoming.png",
-    "48": "assets/yaoming.png",
-    "128": "assets/yaoming.png"
+    "16": "assets/mao_128x128.png",
+    "48": "assets/mao_128x128.png",
+    "128": "assets/mao_128x128.png"
   },
   // 会一直常驻的后台JS或后台页面
   "background": {
@@ -15,9 +15,9 @@
   },
   // 浏览器右上角图标设置，browser_action、page_action、app必须三选一
   "browser_action": {
-    "default_icon": "assets/yaoming.png",
+    "default_icon": "assets/mao_128x128.png",
     // 图标悬停时的标题，可选
-    "default_title": "mock",
+    "default_title": "MOCK-PLUS",
     "default_popup": "index.html#/popup"
   },
   // 需要直接注入页面的JS

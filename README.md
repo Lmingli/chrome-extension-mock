@@ -44,7 +44,7 @@ background -> background : 获取链接中参数
 background -> background : 根据配置过滤链接参数
 background -> background : 获取请求体中参数
 background -> background : 根据配置过滤请求体参数
-background -> background : 根据配置信息对比请求数据、响应数据，判断是否重复
+background -> background : 根据配置对比请求、响应，\n判断是否重复
 background -> background : 保存条数限制检查
 background -> background : 整理要保存的数据格式
 background -> chrome : 保存数据
@@ -73,7 +73,7 @@ background -> background : 获取链接中参数
 background -> background : 根据配置过滤链接参数
 background -> background : 获取请求体中参数
 background -> background : 根据配置过滤请求体参数
-background -> background : 根据过滤后的请求数据寻找是否有匹配的已保存响应数据
+background -> background : 根据过滤后的请求数据寻找是\n否有匹配的已保存响应数据
 background -> background : 生成DATAURL
 background -->> web : 将请求重定向至DATAURL
 web -> web : Network中返回DATAURL
@@ -81,11 +81,11 @@ web -> web : xhr对象获取响应数据
 ```
 
 
-### 开发者工具中面板图例
-![panel](https://assets.luanmingli.com/mock-plus/panel.png)
+### 开发者工具中MOCK面板
+<img src="https://assets.luanmingli.com/mock-plus/panel.png" alt="panel" width="1000" />
 
-### popup面板中图例
-![popup](https://assets.luanmingli.com/mock-plus/popup.jpg)
+### popup面板
+<img src="https://assets.luanmingli.com/mock-plus/popup.jpg" alt="popup" width="1000" />
 
 ### 全局设置项说明
 设置项 | 说明
@@ -108,12 +108,12 @@ url过滤 | 根据请求链接/设置的名称过滤显示保存的数据
 
 
 ### 单条请求链接中设置项
-> 同全局配置项，只对当前请求链接生效
+同全局配置项，只对当前请求链接生效
 
 设置项 | 说明
 :--- | :---
 对比下次请求 | 同时开启MOCK及保存请求，并有生效数据时，会对比该数据和真实返回数据，并且能直接修改保存数据。同一时间只能开启一条对比。
-| | 开启对比后url位置会出现对比图标，点击可取消对比
+|  | 开启对比后url位置会出现对比图标，点击可取消对比
 置顶 | 不同请求链接按请求时间倒序排列，可设置将该条目置顶
 | | 置顶后url位置会出现置顶按钮，点击可取消置顶
 名称 | 可配置名称，替代URL显示，hover时会显示完整请求地址
@@ -130,4 +130,3 @@ PARAMS | 该请求根据配置项忽略后的链接参数
 BODY | 该请求根据配置项忽略后的请求体参数
 RESPONSE | 已保存的响应体数据
 修改名称 | 设置名称方便查找，并且设置名称后可在popup面板中快速切换
-

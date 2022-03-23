@@ -1,11 +1,11 @@
 {
-  "name": "mock",
+  "name": "mock-plus",
   "version": "1.0.0",
   "scripts": {
     "serve": "vite",
     "crx": "pnpm run serve:crx",
     "serve:crx": "vue-tsc --noEmit && vite build --watch --mode crx",
-    "build": "rimraf chrome-extensions-mock && vue-tsc --noEmit && vite build",
+    "build": "rimraf MOCK-PLUS && vue-tsc --noEmit && vite build",
     "build:test": "rimraf test && vue-tsc --noEmit && vite build --mode test",
     "build:watch": "vue-tsc --noEmit && vite build --watch",
     "preview": "vite preview"
