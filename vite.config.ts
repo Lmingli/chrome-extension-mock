@@ -9,7 +9,7 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
 
 // https://vitejs.dev/config/
 export default ({ mode }) => {
-  const chromeExtensionsName = mode === 'test' ? 'test' : 'chrome-extensions-mock';
+  const chromeExtensionsName = mode === 'test' ? 'test' : 'MOCK-PLUS';
   return defineConfig({
     base: './',
     server: {
