@@ -1,6 +1,6 @@
 <template>
   <div class="inline-operate">
-    <el-button v-if="showUncheck()" type="warning" @click="handleUnchek">取消已选择</el-button>
+    <el-button v-if="showUncheck()" type="warning" @click="handleUnchek">关闭</el-button>
     <el-input
       :model-value="columnFilter"
       @input="columnFilter = $event"

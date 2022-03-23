@@ -3,7 +3,7 @@
   <el-button type="danger" @click="handleClear">清空</el-button>
   <el-input :model-value="searchString" @input="emits('update:searchString', $event)" placeholder="url过滤" clearable></el-input>
   <el-button type="primary" @click="emits('update:filterLocationUrl', !filterLocationUrl)">{{ filterLocationUrl ? '取消' : '' }}筛选当前页面链接</el-button>
-  <el-button type="warning" @click="handleResetActive">取消全部已选择</el-button>
+  <el-button type="warning" @click="handleResetActive">关闭全部生效中MOCK</el-button>
 </template>
 
 <script setup lang="ts">
@@ -34,7 +34,7 @@ const handleClear = async() => {
 
 const handleResetActive = async() => {
   try {
-    await ElMessageBox.confirm(`取消全部已选择`, '提示');
+    await ElMessageBox.confirm(`取消全部生效MOCK`, '提示');
     let storageAll = await storage.get();
     for (let n in storageAll) {
       const storageItemData = storageAll[n]?.data;
