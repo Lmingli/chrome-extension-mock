@@ -34,7 +34,7 @@
                 <template #before>
                   <el-table-column align="center" width="90px">
                     <template #default="{ row: expandRow }">
-                      <el-button v-if="expandRow.active" type="success" @click="handleCancelActive(row)">生效中</el-button>
+                      <el-button v-if="expandRow.active" type="success" @click="handleCancelActive(row)">生效</el-button>
                       <el-button v-else @click="handleChooseActive(row, expandRow)">开启</el-button>
                     </template>
                   </el-table-column>
