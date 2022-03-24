@@ -8,7 +8,10 @@
     "build": "rimraf MOCK-PLUS && vue-tsc --noEmit && vite build",
     "build:test": "rimraf test && vue-tsc --noEmit && vite build --mode test",
     "build:watch": "vue-tsc --noEmit && vite build --watch",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "tar": "tar -cvf MOCK-PLUS.tar MOCK-PLUS",
+    "push": "scp MOCK-PLUS.tar root@82.157.146.64:/data/assets/",
+    "release": "pnpm run tar && pnpm run push && rimraf MOCK-PLUS.tar"
   },
   "dependencies": {
     "axios": "^0.24.0",
