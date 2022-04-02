@@ -18,10 +18,7 @@
   },
   "content_scripts": [
     {
-      //"matches": ["http://*/*", "https://*/*"],
-      // "<all_urls>" 表示匹配所有地址
       "matches": ["<all_urls>"],
-      // 多个JS按顺序注入
       "js": ["content-script.js"],
       "run_at": "document_start"
     }
@@ -29,19 +26,15 @@
   "permissions": [
     "declarativeNetRequest",
     "declarativeNetRequestFeedback",
-    "storage", // 插件本地存储
+    "storage",
     "downloads",
     "tabs"
   ],
   "host_permissions": [
     "*://*/*"
   ],
-  // 普通页面能够直接访问的插件资源列表，如果不设置是无法直接访问的
-  // "web_accessible_resources": ["inject.js"],
   "options_ui": {
     "page": "index.html#/options"
   },
   "devtools_page": "devtools.html"
-  // 插件主页
-  // "homepage_url": "https://www.baidu.com"
 }

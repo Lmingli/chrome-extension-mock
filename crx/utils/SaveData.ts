@@ -1,6 +1,18 @@
-import { StorageAll, StorageSetting, StorageItem, StorageItemData } from '../../interfaces/common.interface';
-import { getRequestUrlPrams, getSaveRequestBody, filterRequestParams, getMockRequestBody, commonCheckMatch } from './utils';
-import defaultSetting from './DefaultSetting';
+import { StorageAll, StorageItem } from '../../interfaces/common.interface';
+import { getRequestUrlPrams, getSaveRequestBody, filterRequestParams, commonCheckMatch } from './utils';
+
+const defaultSetting = {
+  openSave: false,
+  openMock: false,
+  openUrl: '127.0.0.1:8888',
+  limit: null,
+  checkParams: true,
+  checkBody: true,
+  removeRequestUrlParams: [],
+  removeRequestBodyParams: ['t'],
+  listUrlRemoveStr: [],
+  filterUrl: [],
+}
 
 /* 
   SAVE
@@ -20,9 +32,6 @@ export default async({ request, response, locationUrl = '' }) => {
   chrome?.runtime?.sendMessage({
     locationUrl,
   });
-
-  // const request: Request = msg.network.request;
-  // const response: string = msg.network.response; // 服务器真实相应的数据
 
   // 过滤vue热更新请求
   if (/hot-update\.json/.test(request.url)) {
@@ -54,16 +63,6 @@ export default async({ request, response, locationUrl = '' }) => {
 
 
   const storageKey = request.url.split('?')[0]; // 请求的url地址，storage中的key
-
-
-  try {
-    if (storage[storageKey].compare) {
-      console.log('SAVE-----已加入对比')
-      chrome?.runtime?.sendMessage({
-        compareRealData: JSON.stringify(JSON.parse(response), null, 2),
-      });
-    }
-  } catch (error) {}
 
 
   const requestParamsAll = getRequestUrlPrams(request.url); // 获取所有url中参数

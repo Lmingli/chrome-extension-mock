@@ -1,9 +1,10 @@
 import saveData from './utils/SaveData';
-import { StorageAll, StorageSetting, StorageItem, StorageItemData } from '../interfaces/common.interface';
+import { StorageAll, StorageItem, StorageItemData } from '../interfaces/common.interface';
 import { filterRequestParams } from './utils/utils';
 
 // 生成devtool面板
 chrome.devtools.panels.create('mock', '', 'index.html#/panel', (panel) => {});
+
 
 console.log('devtool.js init');
 
@@ -121,7 +122,7 @@ chrome.storage.onChanged.addListener(async() => {
 
 
 
-chrome.runtime.onMessage.addListener(async(msg, sender, sendResponse): Promise<void> => {
+chrome.runtime.onMessage.addListener(async(msg, sender, sendResponse): Promise<any> => {
   console.log('onmessage');
   // 保存storage为本地文件
   if (!!msg.download) {

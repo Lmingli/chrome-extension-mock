@@ -1,4 +1,3 @@
-import { StorageSetting } from '../../interfaces/common.interface';
 import { Request } from '../../interfaces/network.interface';
 
 interface Qs {

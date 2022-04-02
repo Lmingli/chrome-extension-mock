@@ -4,6 +4,3 @@ chrome.storage.local.get('setting', (res) => {
   }
 });
 
-// chrome.webRequest.onBeforeRequest.addListener(details => {
-//
-// }, {urls: ["<all_urls>"]}, ["blocking"]);

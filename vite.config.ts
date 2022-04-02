@@ -18,6 +18,7 @@ export default ({ mode }) => {
     },
     build: {
       emptyOutDir: mode !== 'crx',
+      outDir: chromeExtensionsName,
       sourcemap: mode === 'crx',
       minify: mode === 'crx' ? false: 'esbuild',
       rollupOptions: {

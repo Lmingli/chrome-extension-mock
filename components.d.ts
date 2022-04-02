@@ -5,7 +5,6 @@
 declare module 'vue' {
   export interface GlobalComponents {
     404: typeof import('./src/components/404.vue')['default']
-    CodeMirrorDialog: typeof import('./src/components/CodeMirrorDialog.vue')['default']
     EditableList: typeof import('./src/components/EditableList.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElConfigProvider: typeof import('element-plus/es')['ElConfigProvider']

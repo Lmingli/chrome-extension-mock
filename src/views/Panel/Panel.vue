@@ -92,14 +92,6 @@
     @change="handleTextDialogChange"
   />
 
-  <CodeMirrorDialog
-    v-if="dialogCodeMirrorVisible"
-    v-model:visible="dialogCodeMirrorVisible"
-    :compareMockData="compareMockData"
-    :compareRealData="compareRealData"
-    @close="handleCodeMirrorClose"
-    @save="handleCodeMirrorSave" 
-  />
 </template>
 
 <script setup lang="ts">
@@ -112,7 +104,6 @@ import { StorageItem, StorageItemData, StorageSetting } from '~/interfaces/commo
 import PanelOperate from './PanelOperate.vue';
 import TableColumnOperate from './TableColumnOperate.vue';
 const ResponseTextDialog = defineAsyncComponent(() => import('@/components/ResponseTextDialog.vue'));
-const CodeMirrorDialog = defineAsyncComponent(() => import('@/components/CodeMirrorDialog.vue'));
 
 
 interface Column {
@@ -349,42 +340,6 @@ const handleTextDialogChange = async(text: string) => {
 }
 
 
-const dialogCodeMirrorVisible = ref(false);
-const compareMockData = ref('');
-const compareRealData = ref('');
-const handleCodeMirrorClose = () => {
-  compareMockData.value = '';
-  compareRealData.value = '';
-}
-const handleCodeMirrorSave = async(str: string) => {
-  let cur = tableData.value.find(n => n.storageItem.compare);
-  if (cur) {
-    const activeData = cur.storageItem.data.find(n => !!n.active);
-    if (activeData) {
-      cur.storageItem.compare = false;
-      activeData.response = str;
-      await storage.set({
-        [cur.url]: toRaw(cur.storageItem),
-      });
-      dialogCodeMirrorVisible.value = false;
-      ElMessage.success('保存成功');
-    }
-  }
-}
-
-const showDialogCodeMirror = () => {
-  dialogCodeMirrorVisible.value = true;
-  const cur: any = tableData.value.find(n => n.storageItem.compare);
-  if (cur) {
-    storage.set({
-      [cur.url]: {
-        ...cur.storageItem,
-        compare: false,
-      },
-    })
-  }
-}
-
 chrome?.runtime?.onMessage?.addListener((msg, sender, sendResponse) :boolean => {
   if (!!msg.info) {
     ElMessage({
@@ -395,20 +350,6 @@ chrome?.runtime?.onMessage?.addListener((msg, sender, sendResponse) :boolean => 
       duration: 1200,
       customClass: 'message-info-right-offset'
     })
-  }
-
-  if (!!msg.compareMockData) {
-    compareMockData.value = msg.compareMockData;
-    if (!!compareRealData.value) {
-      showDialogCodeMirror();
-    }
-  }
-
-  if (!!msg.compareRealData) {
-    compareRealData.value = msg.compareRealData;
-    if (!!compareMockData.value) {
-      showDialogCodeMirror();
-    }
   }
 
   sendResponse();
