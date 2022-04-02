@@ -8,31 +8,25 @@ if (MODE === 'development') {
 
 
 export const storage = {
-  get: (params: any = null): Promise<StorageAll> => new Promise((resolve) => {
-    chrome.storage.local.get(params, (res) => {
-      resolve(res ?? {});
+  get: async(params: any = null): Promise<any> => {
+    return await chrome.storage.local.get(params);
+  },
+  set: async(params = {}): Promise<void> => {
+    await chrome.storage.local.set(params);
+    return;
+  },
+  remove: async(key: string): Promise<void> => {
+    await chrome.storage.local.remove(key);
+    return;
+  },
+  clear: async(): Promise<void> => {
+    const setting = await chrome.storage.local.get('setting');
+    await chrome.storage.local.clear();
+    await chrome.storage.local.set({
+      setting,
     })
-  }),
-  set: (params = {}) => new Promise((resolve) => {
-    chrome.storage.local.set(params, () => {
-      resolve(null);
-    });
-  }),
-  remove: (key: string) => new Promise((resolve) => {
-    chrome.storage.local.remove(key, () => {
-      resolve(null);
-    });
-  }),
-  clear: () => new Promise((resolve) => {
-    chrome.storage.local.get('setting', (res) => {
-      chrome.storage.local.clear(() => {
-        chrome.storage.local.set({ setting: res.setting }, () => {
-          resolve(null);
-        });
-      });
-    })
-    
-  }),
+    return;
+  },
   onchange: (cb: Function) => {
     chrome.storage.onChanged.addListener(() => {
       cb();

@@ -137,6 +137,7 @@ const drawer = ref(false);
 const setting: any = reactive({
   compare: false,
   top: false,
+  name: storageSetting.value.name,
   limit: storageSetting.value.limit,
   checkParams: storageSetting.value.checkParams,
   checkBody: storageSetting.value.checkBody,
@@ -160,14 +161,14 @@ onMounted(() => {
 })
 
 const settingConf = [
-  { type: 'switch', prop: 'compare', label: '对比下次请求', values: [true, false] },
+  // { type: 'switch', prop: 'compare', label: '对比下次请求', values: [true, false] },
   { type: 'switch', prop: 'top', label: '置顶', values: [true, false] },
   { type: 'input', prop: 'name', label: '名称' },
   { type: 'input', prop: 'limit', label: '相同链接条数上限' },
   { type: 'switch', prop: 'checkParams', label: '检查请求链接参数', values: [true, false], text: ['开启', ''] },
-  { type: 'switch', prop: 'checkBody', label: '检查请求体', values: [true, false], text: ['开启', ''] },
+  // { type: 'switch', prop: 'checkBody', label: '检查请求体', values: [true, false], text: ['开启', ''] },
   { type: 'slotIn', slot: 'removeRequestUrlParams', label: '忽略请求链接参数' },
-  { type: 'slotIn', slot: 'removeRequestBodyParams', label: '忽略请求体参数' },
+  // { type: 'slotIn', slot: 'removeRequestBodyParams', label: '忽略请求体参数' },
 ];
 const handleClose = (done: any) => {
   done();

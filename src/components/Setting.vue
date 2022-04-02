@@ -131,9 +131,9 @@ const settingMoreConf = [
   ...settingConf,
   { type: 'input', prop: 'limit', label: '相同链接条数上限' },
   { type: 'switch', prop: 'checkParams', label: '检查请求链接参数', values: [true, false], text: ['开启', ''] },
-  { type: 'switch', prop: 'checkBody', label: '检查请求体', values: [true, false], text: ['开启', ''] },
+  // { type: 'switch', prop: 'checkBody', label: '检查请求体', values: [true, false], text: ['开启', ''] },
   { type: 'slotIn', slot: 'removeRequestUrlParams', label: '忽略请求链接参数' },
-  { type: 'slotIn', slot: 'removeRequestBodyParams', label: '忽略请求体参数' },
+  // { type: 'slotIn', slot: 'removeRequestBodyParams', label: '忽略请求体参数' },
   { type: 'slotIn', slot: 'listUrlRemoveStr', label: '列表中隐藏url中的字符' },
   { type: 'slotIn', slot: 'filterUrl', label: '过滤url中包含的请求' },
 ];

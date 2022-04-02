@@ -214,9 +214,9 @@ onMounted(() => {
 
 const expandColumn = [
   { label: 'method', prop: 'method', width: '70px' },
-  { label: 'requestParams', prop: 'requestParams', 'show-overflow-tooltip': true },
-  { label: 'requestBody', prop: 'requestBody', 'show-overflow-tooltip': true },
-  { label: 'response', prop: 'response', 'show-overflow-tooltip': true, minWidth: '100px' },
+  { label: 'requestParams', prop: 'requestParams', 'show-overflow-tooltip': true, width: '120px' },
+  // { label: 'requestBody', prop: 'requestBody', 'show-overflow-tooltip': true },
+  { label: 'response', prop: 'response', 'show-overflow-tooltip': true },
 ];
 
 
@@ -385,7 +385,7 @@ const showDialogCodeMirror = () => {
   }
 }
 
-chrome?.runtime?.onMessage?.addListener((msg): void => {
+chrome?.runtime?.onMessage?.addListener((msg, sender, sendResponse) :boolean => {
   if (!!msg.info) {
     ElMessage({
       type: 'info',
@@ -410,6 +410,9 @@ chrome?.runtime?.onMessage?.addListener((msg): void => {
       showDialogCodeMirror();
     }
   }
+
+  sendResponse();
+  return true;
 })
 
 </script>
