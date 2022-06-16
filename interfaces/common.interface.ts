@@ -15,6 +15,8 @@ export interface StorageSetting extends CommonSettingItem {
   openSave: boolean;
   openMock: boolean;
   openUrl: string;
+  openUrlList: string[];
+  tagList: string[];
   listUrlRemoveStr: string[];
   filterUrl: string[];
   [prop: string]: any;

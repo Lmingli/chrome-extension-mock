@@ -9,6 +9,16 @@
       :showResetButton="false"
       class="form"
     >
+      <template #openUrl="{ form }">
+        <el-select v-model="form.openUrl" style="width: 140px;" clearable>
+          <el-option v-for="item of setting.openUrlList" :value="item"></el-option>
+        </el-select>
+      </template>
+      <template #tag="{ form }">
+        <el-select v-model="form.tag" style="width: 96px;" clearable>
+          <el-option v-for="item of setting.tagList" :value="item"></el-option>
+        </el-select>
+      </template>
       <template #button>
         <el-button type="success" @click="drawer = true;">更多设置</el-button>
       </template>
@@ -46,6 +56,22 @@
       :showResetButton="false"
       label-width="200px"
     >
+      <template #openUrl="{ form }">
+        <el-select v-model="form.openUrl" clearable>
+          <el-option v-for="item of setting.openUrlList" :value="item"></el-option>
+        </el-select>
+      </template>
+      <template #openUrlList="{ form }">
+        <EditableList v-model="form.openUrlList"></EditableList>
+      </template>
+      <template #tag="{ form }">
+        <el-select v-model="form.tag" clearable>
+          <el-option v-for="item of setting.tagList" :value="item"></el-option>
+        </el-select>
+      </template>
+      <template #tagList="{ form }">
+        <EditableList v-model="form.tagList"></EditableList>
+      </template>
       <template #removeRequestUrlParams="{ form }">
         <EditableList v-model="form.removeRequestUrlParams"></EditableList>
       </template>
@@ -113,8 +139,11 @@ const handleSubmit: any = async (value: StorageSetting) => {
 
 const settingConf = [
   { type: 'switch', prop: 'openMock', label: 'MOCK', values: [true, false] },
-  { type: 'switch', prop: 'openSave', label: '保存请求', values: [true, false] },
-  { type: 'input', prop: 'openUrl', label: '生效的请求域名', width: '140px' },
+  { type: 'switch', prop: 'openSave', label: '保存', values: [true, false] },
+  // { type: 'input', prop: 'openUrl', label: '生效的请求域名', width: '140px' },
+  // { type: 'select', prop: 'openUrl', label: '生效的请求域名', hideOptionAll: true, enumProp: 'openUrlList' }
+  { type: 'slotIn', slot: 'openUrl', label: '生效的域名' },
+  { type: 'slotIn', slot: 'tag', label: 'tag' },
 ];
 const loading = reactive({
   setting: false,
@@ -129,6 +158,8 @@ const handleClose = (done: any) => {
 
 const settingMoreConf = [
   ...settingConf,
+  { type: 'slotIn', slot: 'openUrlList', label: '待选择域名' },
+  { type: 'slotIn', slot: 'tagList', label: '待选择tag' },
   { type: 'input', prop: 'limit', label: '相同链接条数上限' },
   { type: 'switch', prop: 'checkParams', label: '检查请求链接参数', values: [true, false], text: ['开启', ''] },
   // { type: 'switch', prop: 'checkBody', label: '检查请求体', values: [true, false], text: ['开启', ''] },
@@ -140,7 +171,7 @@ const settingMoreConf = [
 
 const handleSubmitMore: any = async (value: StorageSetting) => {
   console.log('handleSettingMoreSubmit', value);
-  const filterProps = ['filterUrl', 'removeRequestUrlParams', 'listUrlRemoveStr', 'removeRequestBodyParams'];
+  const filterProps = ['filterUrl', 'removeRequestUrlParams', 'listUrlRemoveStr', 'removeRequestBodyParams', 'openUrlList'];
   for (let n of filterProps) {
     value[n] = value[n].filter((x: string) => !!x);
   }
@@ -223,6 +254,10 @@ onMounted(() => {
 .form {
   :deep(.el-form-item) {
     margin-bottom: 8px;
+    margin-right: 16px;
+    .el-form-item__label {
+      padding-right: 6px;
+    }
   }
 }
 </style>

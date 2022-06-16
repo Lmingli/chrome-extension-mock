@@ -65,7 +65,7 @@ chrome.storage.onChanged.addListener(async() => {
   
 
   /* 新增规则 */
-  let addRules = [];
+  let addRules: any = [];
 
   let id = 1;
   const addRuleFn = (storageKey, storageItemData: StorageItemData) :void => {
@@ -73,25 +73,30 @@ chrome.storage.onChanged.addListener(async() => {
     const requestParams = filterRequestParams({
       params: requestParamsAll,
       filter: [
-        ...storage.setting.removeRequestUrlParams,
+        ...storage.setting?.removeRequestUrlParams ?? [],
         ...(storage[storageKey]?.removeRequestUrlParams ?? []),
       ], 
     }); 
-    const urlParamsRegex = Object.entries(requestParams).reduce((prev, cur) => prev + cur[0] + '=' + cur[1] + '.*', '');
+    
+    const urlParamsRegex = Object.entries(requestParams).reduce((prev, cur) => prev + (cur[0] + '=' + cur[1]) + '.*', '');
+    const { domain, path } = storageKey.match(/https?:\/\/(?<domain>.*?):.*?(?<path>\/.*)/)?.groups ?? { path: storageKey };
 
     const redirectUrl = `data:application/json;charset=UTF-8,${storageItemData.response}`;
-
+    
     addRules.push({
       id: (id ++),
       priority: 1,
       action: {
         type: "redirect",
         redirect: {
-          url: redirectUrl,
+          url: redirectUrl.replace(/#/g, ''),
         },
       },
       condition: {
-        regexFilter: `${storageKey}.*${urlParamsRegex}`,
+        regexFilter: `${path}.*${urlParamsRegex}`,
+        requestDomains: [
+          domain,
+        ],
         requestMethods: [storageItemData.method.toLowerCase()],
         resourceTypes: ['xmlhttprequest'],
       },
@@ -104,7 +109,7 @@ chrome.storage.onChanged.addListener(async() => {
     if (n !== 'setting') {
       const storageItem: StorageItem = storage[n];
       for (let x of storageItem.data) {
-        if (x.active) {
+        if (x.active && (!storage.setting?.tag || storage.setting?.tag === x.tag)) {
           addRuleFn(n, x);
         }
       }

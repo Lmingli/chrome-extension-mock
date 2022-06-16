@@ -6,13 +6,13 @@ const injectScript = (file, node = 'html'): Promise<void> => new Promise((resolv
   s.setAttribute('type', 'text/javascript');
   s.setAttribute('src', file);
   s.onload = () => {
-    resolve(null);
+    resolve();
   };
   ele.appendChild(s);
 });
 
 const sleep = (time: number): Promise<void> => new Promise((resolve) => {
   setTimeout(() => {
-    resolve(null);
+    resolve();
   }, time * 1000);
 });

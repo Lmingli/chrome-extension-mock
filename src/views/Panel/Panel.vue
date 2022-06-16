@@ -32,23 +32,24 @@
                 max-height="320px"
               >
                 <template #before>
-                  <el-table-column align="center" width="90px">
+                  <el-table-column align="left" width="110px">
                     <template #default="{ row: expandRow }">
-                      <el-button v-if="expandRow.active" type="success" @click="handleCancelActive(row)">生效</el-button>
-                      <el-button v-else @click="handleChooseActive(row, expandRow)">开启</el-button>
+                      <el-button v-if="expandRow.active" type="success" size="small" @click="handleCancelActive(row)">生效</el-button>
+                      <el-button v-else size="small" @click="handleChooseActive(row, expandRow)">开启</el-button>
+                      <el-tag v-if="!storageSetting.tag && !!expandRow?.tag" class="expand-row-tag" size="small" type="danger">{{ expandRow.tag }}</el-tag>
                     </template>
                   </el-table-column>
                 </template>
                 <template #after>
-                  <el-table-column align="center" width="104px">
+                  <el-table-column align="center" width="120px">
                     <template #default="{ row: expandRow }">
-                      <el-input v-model="expandRow.name" placeholder="输入名称"></el-input>                    
+                      <el-input v-model="expandRow.name" size="small" placeholder="输入名称"></el-input>                    
                     </template>
                   </el-table-column>
-                  <el-table-column align="center" width="220px">
+                  <el-table-column align="center" width="170px">
                     <template #default="{ row: expandRow }">
-                      <el-button type="primary" @click="handleExpandName(row, expandRow)">{{ expandRow.name ? '修改' : '设置' }}名称</el-button>
-                      <el-button type="danger" @click="handleExpandDelete(row, expandRow)">删除</el-button>
+                      <el-button type="primary" size="small" @click="handleExpandName(row, expandRow)">{{ expandRow.name ? '修改' : '设置' }}名称</el-button>
+                      <el-button type="danger" size="small" @click="handleExpandDelete(row, expandRow)">删除</el-button>
                     </template>
                   </el-table-column>
                 </template>
@@ -130,7 +131,7 @@ const tableData = shallowRef<Column[]>([]);
 const filterTableData = computed(() => {
   let data = tableData.value;
   if (!!searchString.value) {
-    data = data.filter(n => n.url.includes(searchString.value) || n.storageItem?.name?.includes(searchString.value));
+    data = data.filter(n => new RegExp(searchString.value).test(n.url) || new RegExp(searchString.value).test(n.storageItem?.name ?? ''));
   }
   if (filterLocationUrl.value && !!currentLocationUrl.value) {
     data = data.filter(n => n.storageItem.data.some((x) => x.locationUrl === currentLocationUrl.value));
@@ -161,17 +162,24 @@ const tableUrlFormatter = (cellValue: string) => {
 
 const setStorage = async() => {
   try {
+    storageSetting.value = (await storage.get('setting')).setting;
+
     const data = await storage.get();
     let tmp: Column[] = [];
     for (const n in data) {
       if (n === 'setting') {
-        storageSetting.value = <StorageSetting>data[n];
         continue;
       };
       if (n === 'tmp') {
         continue;
       }
-      const storageItem: StorageItem = data[n];
+      let storageItem: StorageItem = data[n];
+      if (!!storageSetting.value.tag) {
+        storageItem.data = storageItem.data.filter((n) => n.tag === storageSetting.value.tag);
+        if (storageItem.data.length === 0) {
+          continue;
+        }
+      }
       tmp.push({
         url: n,
         storageItem: storageItem,
@@ -371,10 +379,16 @@ chrome?.runtime?.onMessage?.addListener((msg, sender, sendResponse) :boolean => 
 <style lang='scss' scoped>
 .table-inside {
   padding-left: 20px;
-  margin-top: -10px;
+  margin-top: -14px;
   & :deep(.el-table__inner-wrapper) {
     border: 1px solid #DCDFE6;
     border-top: none;
+  }
+  .expand-row-tag {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 62px;
   }
 }
 </style>
