@@ -79,7 +79,7 @@ chrome.storage.onChanged.addListener(async() => {
     }); 
     
     const urlParamsRegex = Object.entries(requestParams).reduce((prev, cur) => prev + (cur[0] + '=' + cur[1]) + '.*', '');
-    const { domain, path } = storageKey.match(/https?:\/\/(?<domain>.*?):.*?(?<path>\/.*)/)?.groups ?? { path: storageKey };
+    const { domain, path } = storageKey.match(/https?:\/\/(?<domain>.*?)(:.*?)?(?<path>\/.*)/)?.groups ?? { path: storageKey };
 
     const redirectUrl = `data:application/json;charset=UTF-8,${storageItemData.response}`;
     

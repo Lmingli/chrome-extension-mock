@@ -158,11 +158,6 @@ const expandTableData = (storageItem: StorageItem) => {
           .filter((n: StorageItemData) => !filterString.value || (n.requestBody + n.requestParams + n.response).includes(filterString.value))
           .filter((n: StorageItemData) => !storageSetting.value.tag || n.tag === storageSetting.value.tag);
 }
-// const expandTableData = (row: Column) => {
-//   const data = expandTableDataFilterFn(row.storageItem);
-//   // row.filterCount = data.length;
-//   return data;
-// };
 
 const tableColumn = [
   { slot: 'expand' },

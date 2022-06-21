@@ -4,13 +4,14 @@
   <el-input :model-value="searchString" @input="emits('update:searchString', $event)" placeholder="url过滤" clearable></el-input>
   <el-button type="primary" @click="emits('update:filterLocationUrl', !filterLocationUrl)">{{ filterLocationUrl ? '取消' : '' }}筛选当前页面链接</el-button>
   <el-button type="warning" @click="handleResetActive">关闭全部生效中MOCK</el-button>
-  <el-input :model-value="filterString" @input="emits('update:filterString', $event)" placeholder="保存数据过滤" clearable></el-input>
+  <el-input :model-value="filterString" @input="handleFilterStringChange" placeholder="保存数据过滤" clearable></el-input>
 </template>
 
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import { storage } from '@/utils/Chrome';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { debounce } from 'throttle-debounce';
 
 const props = defineProps<{
   searchString: string;
@@ -54,6 +55,14 @@ const handleResetActive = async() => {
   } catch (error) {
     console.log(error);
   }
+}
+
+const setStorageDebounce = debounce(500, () => {
+  emits('setStorage');
+});
+const handleFilterStringChange = (val: string) => {
+  emits('update:filterString', val);
+  setStorageDebounce();
 }
 
 </script>

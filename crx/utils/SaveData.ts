@@ -101,10 +101,6 @@ export default async({ request, response, locationUrl = '' }) => {
       return false;
     }
 
-    if (n.tag !== storage.setting?.tag) {
-      return false;
-    }
-
     const commonCheckResult = commonCheckMatch({
       setting: storage.setting,
       n,
@@ -117,6 +113,10 @@ export default async({ request, response, locationUrl = '' }) => {
     }
 
     if (n.response !== response) {
+      return false;
+    }
+
+    if (n.tag !== storage.setting?.tag) {
       return false;
     }
     

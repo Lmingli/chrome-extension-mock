@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "MOCK-PLUS",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "MOCK-PLUS",
   "icons": {
     "16": "assets/mao_128x128.png",
