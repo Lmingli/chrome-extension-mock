@@ -5,7 +5,12 @@
     </el-header>
 
     <el-main style="padding: 10px;">
-      <PanelOperate @setStorage="setStorage" v-model:searchString="searchString" v-model:filterLocationUrl="filterLocationUrl" />
+      <PanelOperate
+        @setStorage="setStorage"
+        v-model:searchString="searchString"
+        v-model:filterLocationUrl="filterLocationUrl"
+        v-model:filterString="filterString"
+      />
 
       <CustomizeTable
         :data="filterTableData"
@@ -24,7 +29,7 @@
 
               <CustomizeTable
                 v-if="(row.storageItem.data instanceof Array)"
-                :data="expandTableData(row)"
+                :data="expandTableData(row.storageItem)"
                 :column="expandColumn"
                 :show-header="false"
                 class="table-inside"
@@ -36,7 +41,7 @@
                     <template #default="{ row: expandRow }">
                       <el-button v-if="expandRow.active" type="success" size="small" @click="handleCancelActive(row)">生效</el-button>
                       <el-button v-else size="small" @click="handleChooseActive(row, expandRow)">开启</el-button>
-                      <el-tag v-if="!storageSetting.tag && !!expandRow?.tag" class="expand-row-tag" size="small" type="danger">{{ expandRow.tag }}</el-tag>
+                      <el-tag v-if="!!expandRow?.tag" class="expand-row-tag" size="small" type="danger">{{ expandRow.tag }}</el-tag>
                     </template>
                   </el-table-column>
                 </template>
@@ -111,7 +116,7 @@ interface Column {
   url: string;
   storageItem: StorageItem;
   count: number | string;
-  size: number;
+  size: string;
   filterCount?: number;
 }
 
@@ -119,6 +124,7 @@ const storageSetting = ref<StorageSetting>(DefaultSetting());
 const searchString = ref('');
 const filterLocationUrl = ref(false);
 const currentLocationUrl = ref('');
+const filterString = ref('');
 try {
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse): void => {
     if (!!msg.locationUrl) {
@@ -136,15 +142,27 @@ const filterTableData = computed(() => {
   if (filterLocationUrl.value && !!currentLocationUrl.value) {
     data = data.filter(n => n.storageItem.data.some((x) => x.locationUrl === currentLocationUrl.value));
   }
+  if (filterString.value) {
+    data = data.filter(n => n.storageItem.data.some((x) => (x.requestBody + x.requestParams + x.response).includes(filterString.value)));
+  }
+  if (!!storageSetting.value?.tag) {
+    data = data.filter((n) => n.storageItem.data.some((x) => x.tag === storageSetting.value.tag));
+  }
   return data;
 });
-const expandTableData = (row: Column) => {
-  const data = row.storageItem.data
-                .filter((n: any) => !row.storageItem.columnFilter || n?.response?.indexOf(row.storageItem.columnFilter) > -1)
-                .filter((n: any) => !filterLocationUrl.value || n.locationUrl === currentLocationUrl.value);
-  row.filterCount = data.length;
-  return data;
-};
+
+const expandTableData = (storageItem: StorageItem) => {
+  return storageItem?.data
+          .filter((n: StorageItemData) => !storageItem.columnFilter || (n.response + n.requestParams + n.requestBody).indexOf(storageItem.columnFilter) > -1)
+          .filter((n: StorageItemData) => !filterLocationUrl.value || n.locationUrl === currentLocationUrl.value)
+          .filter((n: StorageItemData) => !filterString.value || (n.requestBody + n.requestParams + n.response).includes(filterString.value))
+          .filter((n: StorageItemData) => !storageSetting.value.tag || n.tag === storageSetting.value.tag);
+}
+// const expandTableData = (row: Column) => {
+//   const data = expandTableDataFilterFn(row.storageItem);
+//   // row.filterCount = data.length;
+//   return data;
+// };
 
 const tableColumn = [
   { slot: 'expand' },
@@ -160,6 +178,18 @@ const tableUrlFormatter = (cellValue: string) => {
   return value;
 }
 
+const formatSize = (size: number) => {
+  if (size < 1024) {
+    return `${size}B`;
+  } else if (size < 1024 * 1024) {
+    return `${(size / 1024).toFixed(2)}KB`;
+  } else if (size < 1024 * 1024 * 1024) {
+    return `${(size / 1024 / 1024).toFixed(2)}MB`;
+  } else {
+    return `${size}`;
+  }
+}
+
 const setStorage = async() => {
   try {
     storageSetting.value = (await storage.get('setting')).setting;
@@ -173,18 +203,14 @@ const setStorage = async() => {
       if (n === 'tmp') {
         continue;
       }
-      let storageItem: StorageItem = data[n];
-      if (!!storageSetting.value.tag) {
-        storageItem.data = storageItem.data.filter((n) => n.tag === storageSetting.value.tag);
-        if (storageItem.data.length === 0) {
-          continue;
-        }
-      }
+      const storageItem: StorageItem = data[n];
+      const filterStorageItemData = expandTableData(storageItem);
       tmp.push({
         url: n,
         storageItem: storageItem,
-        count: storageItem?.data instanceof Array ? storageItem.data.length : JSON.stringify(storageItem),
-        size: JSON.stringify(storageItem).length,
+        filterCount: filterStorageItemData?.length ?? 0,
+        count: storageItem.data instanceof Array ? storageItem.data.length : JSON.stringify(storageItem.data),
+        size: formatSize(JSON.stringify({ ...storageItem, data: filterStorageItemData }).length),
       });
     }
     tmp = tmp.sort((a,b) => {

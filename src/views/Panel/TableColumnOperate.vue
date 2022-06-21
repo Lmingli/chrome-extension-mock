@@ -61,7 +61,7 @@ interface Column {
   url: string;
   storageItem: StorageItem;
   count: number | string;
-  size: number;
+  size: string;
 }
 
 const props = defineProps<{

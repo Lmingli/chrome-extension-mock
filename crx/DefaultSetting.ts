@@ -2,7 +2,7 @@ export const DefaultSetting = () => ({
   openSave: false,
   openMock: false,
   openUrl: '127.0.0.1:8888',
-  tag: null,
+  tag: '',
   limit: null,
   checkParams: true,
   checkBody: true,

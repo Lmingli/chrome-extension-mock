@@ -9,7 +9,7 @@ const defaultSetting = {
   checkParams: true,
   checkBody: true,
   openUrlList: ['127.0.0.1:8888'],
-  tag: null,
+  tag: '',
   tagList: [],
   removeRequestUrlParams: [],
   removeRequestBodyParams: ['t'],
@@ -98,6 +98,10 @@ export default async({ request, response, locationUrl = '' }) => {
     }
 
     if (n.method !== request.method) {
+      return false;
+    }
+
+    if (n.tag !== storage.setting?.tag) {
       return false;
     }
 
