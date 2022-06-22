@@ -106,19 +106,11 @@ import { storage } from '@/utils/Chrome';
 import { ElMessage } from 'element-plus';
 import { Sunny } from '@element-plus/icons-vue';
 import { DefaultSetting } from '~/crx/DefaultSetting';
-import { StorageItem, StorageItemData, StorageSetting } from '~/interfaces/common.interface';
+import { StorageItem, StorageItemData, StorageSetting, PanelColumn } from '~/interfaces/common.interface';
 import PanelOperate from './PanelOperate.vue';
 import TableColumnOperate from './TableColumnOperate.vue';
 const ResponseTextDialog = defineAsyncComponent(() => import('@/components/ResponseTextDialog.vue'));
 
-
-interface Column {
-  url: string;
-  storageItem: StorageItem;
-  count: number | string;
-  size: string;
-  filterCount?: number;
-}
 
 const storageSetting = ref<StorageSetting>(DefaultSetting());
 const searchString = ref('');
@@ -133,7 +125,7 @@ try {
   })
 } catch (error) {}
 
-const tableData = shallowRef<Column[]>([]);
+const tableData = shallowRef<PanelColumn[]>([]);
 const filterTableData = computed(() => {
   let data = tableData.value;
   if (!!searchString.value) {
@@ -153,17 +145,17 @@ const filterTableData = computed(() => {
 
 const expandTableData = (storageItem: StorageItem) => {
   return storageItem?.data
-          .filter((n: StorageItemData) => !storageItem.columnFilter || (n.response + n.requestParams + n.requestBody).indexOf(storageItem.columnFilter) > -1)
+          .filter((n: StorageItemData) => !storageItem.columnFilter || (n.response + n.requestParams + n.requestBody + n.name).indexOf(storageItem.columnFilter) > -1)
           .filter((n: StorageItemData) => !filterLocationUrl.value || n.locationUrl === currentLocationUrl.value)
-          .filter((n: StorageItemData) => !filterString.value || (n.requestBody + n.requestParams + n.response).includes(filterString.value))
+          .filter((n: StorageItemData) => !filterString.value || (n.response + n.requestParams + n.requestBody + n.name).includes(filterString.value))
           .filter((n: StorageItemData) => !storageSetting.value.tag || n.tag === storageSetting.value.tag);
 }
 
 const tableColumn = [
   { slot: 'expand' },
   { slot: 'url' },
-  { label: 'count', prop: 'count', formatter: (row: Column) => row.filterCount !== undefined ? `${row.filterCount}/${row.count}` : row.count },
-  { label: 'size', prop: 'size'},
+  { label: 'count', prop: 'count', formatter: (row: PanelColumn) => row.filterCount !== undefined ? `${row.filterCount}/${row.count}` : row.count, sortable: true, sortBy: 'filterCount', sortOrders: ['descending', 'ascending', null] },
+  { label: 'size', prop: 'size', formatter: (row: PanelColumn) => formatSize(row.size) , sortable: true, sortOrders: ['descending', 'ascending', null] },
 ];
 const tableUrlFormatter = (cellValue: string) => {
   let value = cellValue;
@@ -190,7 +182,7 @@ const setStorage = async() => {
     storageSetting.value = (await storage.get('setting')).setting;
 
     const data = await storage.get();
-    let tmp: Column[] = [];
+    let tmp: PanelColumn[] = [];
     for (const n in data) {
       if (n === 'setting') {
         continue;
@@ -205,7 +197,7 @@ const setStorage = async() => {
         storageItem: storageItem,
         filterCount: filterStorageItemData?.length ?? 0,
         count: storageItem.data instanceof Array ? storageItem.data.length : JSON.stringify(storageItem.data),
-        size: formatSize(JSON.stringify({ ...storageItem, data: filterStorageItemData }).length),
+        size: JSON.stringify({ ...storageItem, data: filterStorageItemData }).length,
       });
     }
     tmp = tmp.sort((a,b) => {
@@ -241,14 +233,14 @@ const expandColumn = [
 
 
 
-const handleCancelCompare = async({ url, storageItem }: Column) => {
+const handleCancelCompare = async({ url, storageItem }: PanelColumn) => {
   storageItem.compare = false;
   await storage.set({
     [url]: toRaw(storageItem),
   });
   ElMessage.info('取消对比');
 }
-const handleCancelTop = async({ url, storageItem }: Column) => {
+const handleCancelTop = async({ url, storageItem }: PanelColumn) => {
   storageItem.top = false;
   await storage.set({
     [url]: toRaw(storageItem),
@@ -265,10 +257,10 @@ const handleAdd = (url: string) => {
 
 
 const expandRowKeys = ref<string[]>([]);
-const handleExpandChange = (_row: any, expanded: Column[]) => {
+const handleExpandChange = (_row: any, expanded: PanelColumn[]) => {
   expandRowKeys.value = expanded.map(n => n.url);
 }
-const handleRowClick = ({ url, storageItem }: Column, column: any) => {
+const handleRowClick = ({ url, storageItem }: PanelColumn, column: any) => {
   if (!(storageItem.data instanceof Array)) {
     return;
   }
@@ -290,7 +282,7 @@ const rowStyle = ({ row, rowIndex }: any) => {
 
 
 
-const handleCancelActive = async(row: Column) => {
+const handleCancelActive = async(row: PanelColumn) => {
   let newVal = row.storageItem;
   for (let n of newVal.data) {
     n.active = false;
@@ -300,7 +292,7 @@ const handleCancelActive = async(row: Column) => {
   });
   ElMessage.success('设置成功');
 }
-const handleChooseActive = async(row: Column, expandRow: StorageItemData) => {
+const handleChooseActive = async(row: PanelColumn, expandRow: StorageItemData) => {
   let newVal = row.storageItem;
   for (let n of newVal.data) {
     n.active = false;
@@ -315,7 +307,7 @@ const handleChooseActive = async(row: Column, expandRow: StorageItemData) => {
   });
   ElMessage.success('设置成功');
 }
-const handleExpandDelete = async(row: Column, expandRow: StorageItemData) => {
+const handleExpandDelete = async(row: PanelColumn, expandRow: StorageItemData) => {
   let newVal = row.storageItem;
   const idx = newVal.data.findIndex(n => n.timestamp === expandRow.timestamp);
   newVal.data.splice(idx, 1);
@@ -324,7 +316,7 @@ const handleExpandDelete = async(row: Column, expandRow: StorageItemData) => {
   });
   ElMessage.success('删除成功');
 }
-const handleExpandName = async(row: Column, expandRow: StorageItemData) => {
+const handleExpandName = async(row: PanelColumn, expandRow: StorageItemData) => {
   let newVal = row.storageItem;
   let cur = newVal.data.find(n => n.timestamp === expandRow.timestamp);
   if (cur) {
@@ -346,7 +338,7 @@ const dialogInfo = reactive<any>({
   property: '',
 });
 // 点击response
-const handleExpandRowClick = function(a: StorageItemData, b: any, row: Column) {
+const handleExpandRowClick = function(a: StorageItemData, b: any, row: PanelColumn) {
   if (!!b && ['requestParams', 'requestBody', 'response'].includes(b.property)) {
     responseText.value = a[b.property];
     dialogVisible.value = true;

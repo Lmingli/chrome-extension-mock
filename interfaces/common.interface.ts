@@ -46,3 +46,11 @@ export interface StorageItem extends CommonSettingItem {
   columnFilter?: string;
   [prop: string]: any;
 }
+
+export interface PanelColumn {
+  url: string;
+  storageItem: StorageItem;
+  count: number | string;
+  size: number;
+  filterCount?: number;
+}

@@ -55,19 +55,13 @@ import { onMounted, reactive, ref, toRaw, toRefs } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Search } from '@element-plus/icons-vue';
 import { storage } from '@/utils/Chrome';
-import { StorageItem, StorageItemData, StorageSetting } from '~/interfaces/common.interface';
+import { StorageItem, StorageItemData, StorageSetting, PanelColumn } from '~/interfaces/common.interface';
 
-interface Column {
-  url: string;
-  storageItem: StorageItem;
-  count: number | string;
-  size: string;
-}
 
 const props = defineProps<{
   url: string;
   storageItem: StorageItem;
-  tableData: Column[];
+  tableData: PanelColumn[];
   storageSetting: StorageSetting;
 }>();
 const emits = defineEmits<{

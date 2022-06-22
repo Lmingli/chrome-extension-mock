@@ -93,9 +93,9 @@ export default async({ request, response, locationUrl = '' }) => {
 
   // 检查重复
   const responseRepeat = storage[storageKey]?.data?.find?.((n) => {
-    if (n.locationUrl !== locationUrl) {
-      return false;
-    }
+    // if (n.locationUrl !== locationUrl) {
+    //   return false;
+    // }
 
     if (n.method !== request.method) {
       return false;
@@ -116,7 +116,7 @@ export default async({ request, response, locationUrl = '' }) => {
       return false;
     }
 
-    if (n.tag !== storage.setting?.tag) {
+    if (n.tag != storage.setting?.tag) {
       return false;
     }
     
@@ -149,7 +149,7 @@ export default async({ request, response, locationUrl = '' }) => {
     ],
   };
 
-  if ((storage.setting?.limit && saveData.data.length > storage.setting?.limit) || (saveData.limit && saveData.data.length > saveData.limit)) {
+  if ((!!saveData.limit && saveData.data.length > saveData.limit) || (!saveData.limit && !!storage.setting?.limit && saveData.data.length > storage.setting?.limit) ) {
     console.log('SAVE-----超出limit限制，删除最早的非active');
     const index = saveData.data.sort((a, b) => a.timestamp - b.timestamp).findIndex((n) => !n.active);
     saveData.data.splice(index, 1);

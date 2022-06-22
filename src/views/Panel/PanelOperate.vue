@@ -2,7 +2,7 @@
   <el-button type="primary" @click="emits('setStorage')">刷新</el-button>
   <el-button type="danger" @click="handleClear">清空</el-button>
   <el-input :model-value="searchString" @input="emits('update:searchString', $event)" placeholder="url过滤" clearable></el-input>
-  <el-button type="primary" @click="emits('update:filterLocationUrl', !filterLocationUrl)">{{ filterLocationUrl ? '取消' : '' }}筛选当前页面链接</el-button>
+  <!-- <el-button type="primary" @click="emits('update:filterLocationUrl', !filterLocationUrl)">{{ filterLocationUrl ? '取消' : '' }}筛选当前页面链接</el-button> -->
   <el-button type="warning" @click="handleResetActive">关闭全部生效中MOCK</el-button>
   <el-input :model-value="filterString" @input="handleFilterStringChange" placeholder="保存数据过滤" clearable></el-input>
 </template>
